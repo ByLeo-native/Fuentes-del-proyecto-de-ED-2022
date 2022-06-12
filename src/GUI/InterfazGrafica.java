@@ -179,59 +179,47 @@ public class InterfazGrafica extends JFrame {
 						//Lanzo mensaje de exito
 						crearVentanaEmergenteExitosa("<html>¡Se creo el nodo raiz del arbol de forma exitosa!"+
 								"<p>* Rotulo de la raiz: "+sRotuloIngresado+"<p>* Valor de la raiz: "+0+"</html>");
-					
 						//Establezco editables a los textField de nodo ingresado
 						tfRotuloDeNodoDefinido.setEditable(true);
-						
 						//Establezco a la segunda opcion del combo box para crear raiz
 						cbAction.setSelectedIndex(1);
-						
 						//Altero el texto del boton
 						btnIngresarValores.setText("Ingresar valores");
-						
 						//Limpio los JTextField
-						limpiarInputs();
-						
-						
+						limpiarInputs();	
 					}
 				} else if( intComboBox == 1 ) { //Añadir nodo
-					//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
-					String sRotuloIngresado = tfNuevoRotulo.getText();
-					int nuevoGradoDelNodoAncestro = 0;
+					
 					try {
-						nuevoGradoDelNodoAncestro = programa.agregarNodo(sRotuloIngresado, sRotuloDeNodoDefinido);
+						//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
+						String sRotuloIngresado = tfNuevoRotulo.getText();
+						int nuevoGradoDelNodoAncestro = programa.agregarNodo(sRotuloIngresado, sRotuloDeNodoDefinido);
 						//Ventana emergente de que se logro añadir un nodo
 						crearVentanaEmergenteExitosa("<html>"
 								+ "Se añadio un nuevo hijo al nodo ( "+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+")"
 										+ "<p>* Rotulo del nuevo nodo: "+sRotuloIngresado+"<p>* Grado del nuevo nodo: "+0+"</html>");
-					} catch (InvalidPositionException | GInvalidOperationException e1) {
-						crearVentanaEmergenteFallida(e1.getMessage());
-					} 
+					} catch (InvalidPositionException | GInvalidOperationException e1) {crearVentanaEmergenteFallida(e1.getMessage());} 
 					
 				} else if( intComboBox == 2 ) { //Eliminar nodo
 
 					try {
 						programa.eliminarNodo(sRotuloDeNodoDefinido);
 						crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+sRotuloDeNodoDefinido+" del arbol!</html>");
-					} catch (InvalidPositionException error) {
-						crearVentanaEmergenteFallida(error.getMessage());
-					}
-				} else if( intComboBox == 3) {
+					} catch (InvalidPositionException error) {crearVentanaEmergenteFallida(error.getMessage());}
+				} else if( intComboBox == 3) { //Obtener grados
 					taDisplay.setText(programa.obtenerGrados());
-				} else if( intComboBox == 4) {
+				} else if( intComboBox == 4) { //Obtener grado del arbol
 					crearVentanaEmergenteExitosa("Grado actual del árbol: "+programa.obtenerGradoDelArbol());
-				} else if( intComboBox == 5) {
+				} else if( intComboBox == 5) { //Obtener camino
 					try {
 						taDisplay.setText("Camino desde la raiz al nodo con rotulo "+sRotuloDeNodoDefinido+": \n" +programa.obtenerCamino(sRotuloDeNodoDefinido));
-					} catch (InvalidPositionException e1) {
-						crearVentanaEmergenteFallida(e1.getMessage());
-					}
+					} catch (InvalidPositionException e1) {crearVentanaEmergenteFallida(e1.getMessage());}
 				} else if( intComboBox == 6) {
-					taDisplay.setText("Recorrido Preordern: "+programa.mostrarRecorridoPreorden());
+					taDisplay.setText("Recorrido Preorden: "+programa.mostrarRecorridoPreorden());
 				} else if( intComboBox == 7) {
-					taDisplay.setText(programa.mostrarPorNiveles());
+					taDisplay.setText("Recorrido por niveles: \n"+programa.mostrarPorNiveles());
 				} else if( intComboBox == 8) {
-					taDisplay.setText("Recorrido Preorden: "+programa.mostrarRecorridoPostorden());
+					taDisplay.setText("Recorrido Postorden: "+programa.mostrarRecorridoPostorden());
 				} else if( intComboBox == 9) {
 				
 				}

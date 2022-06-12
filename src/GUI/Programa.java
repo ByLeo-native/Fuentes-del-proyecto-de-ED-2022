@@ -54,6 +54,14 @@ public class Programa {
 		return seEjecutoCompleto ;
 	}
 	
+	/**
+	 * Agrega un nodo a un nodo que sera el nodo padre y devuelve el grado actualizado del nodo padre.
+	 * @param rotuloDeNuevoNodo String del rotulo del nodo a agregar.
+	 * @param rotuloDelNodoAncestro String del rotulo del nodo padre del nodo a agregar.
+	 * @return entero del grado del nodo ancestro luego de agregar el nuevo nodo.
+	 * @throws InvalidPositionException si no se encuentra la posicion del nodo con rotulo del que seria el nodo padre.
+	 * @throws GInvalidOperationException si aun no se creo el árbol y el árbol no tiene raiz.
+	 */
 	public int agregarNodo( String rotuloDeNuevoNodo, String rotuloDelNodoAncestro) throws InvalidPositionException, GInvalidOperationException {
 		int nuevoGradoDelNodoAncestro = 0;
 		boolean seEncontro = false;
@@ -86,7 +94,12 @@ public class Programa {
 		}
 	}
 	
-	public boolean eliminarNodo( String rotuloDelNodo) throws InvalidPositionException {
+	/**
+	 * Elimina el nodo con el rotulo que pasa por parametro
+	 * @param rotuloDelNodo String del rotulo del nodo.
+	 * @throws InvalidPositionException si el rotulo pasado por parametro es invalido.
+	 */
+	public void eliminarNodo( String rotuloDelNodo) throws InvalidPositionException {
 		Position<Entry<String,Integer>> posicionEntradaDelAncestro = null;
 		
 		String rotuloDelNodoPadreDelNodoAEliminar = "";
@@ -130,19 +143,20 @@ public class Programa {
 			this.arbolGeneral.removeNode(pos);
 		}
 		
-		return seEncontro;
-		
 	}
 	
+	/**
+	 * Devuelve una cadena de texto donde se muestran todos los grados y todos los rótulos de los nodos que posean cada grado.
+	 * @return una cadena de texto con todos los grados y todos los rotulos de los nodos que posea cada grado.
+	 */
 	public String obtenerGrados() {
 		String textoCompleto = "";
-		
 		int gradoDelArbol = 0;
 		
 		Dictionary<Integer, String> diccionario = new DiccionarioConHashAbierto<Integer,String>();
-		
 		Iterator<Entry<String,Integer>> it = this.arbolGeneral.iterator();
 		
+		//Cada entrada del arbol, las inserto al diccionario donde la clave es el grado de la entrada y el valor el rotulo de la entrada. Ademas se registra el grado del arbol.
 		while(it.hasNext()) {
 			Entry<String,Integer> entrada = it.next();
 			try {
@@ -154,6 +168,7 @@ public class Programa {
 			}
 		}
 		
+		//Desde el grado 0 hasta el grado del arbol, se iran añadiendo los rotulo segun la cantidad de grados que tenga.
 		for( int i = 0; i <= gradoDelArbol; i++) {
 			
 			String textoPorGrado = "Nodos de grado "+i+":";
@@ -169,12 +184,11 @@ public class Programa {
 				textoCompleto += textoPorGrado+"\n";
 			}
 		}
-		
 		return textoCompleto;
 	}
 	
 	/**
-	 * Devuelve el grado del árbol
+	 * Devuelve el grado del árbol.
 	 * @return grado del árbol.
 	 */
 	public int obtenerGradoDelArbol() {
@@ -194,7 +208,7 @@ public class Programa {
 	
 	/**
 	 * Devuelve el camino desde la raiz del arbol hasta el nodo con el rotulo pasado por parametro.
-	 * @param rotulo String con el rotulo a buscar camino
+	 * @param rotulo String con el rotulo a buscar camino.
 	 * @return Cadena de texto con el camino desde la raiz del arbol hasta el nodo con rotulo.
 	 * @throws InvalidPositionException si no se encuentra una entrada con el rotulo pasado por parametro.
 	 */
@@ -242,6 +256,10 @@ public class Programa {
 		}
 	}
 
+	/**
+	 * Devuelve una cadena de texto con los rotulos de los nodos del arbol con un recorrido de preorden.
+	 * @return cadena de texto con los rotulos de los nodos del arbol con un recorrido de preorden.
+	 */
 	public String mostrarRecorridoPreorden() {
 		String recorrido = "";
 		try {
@@ -250,7 +268,11 @@ public class Programa {
 		return recorrido;
 	}
 	
-	public String mostrarRecorridoPostorden() {
+	/**
+	 * Devuelve una cadena de texto con los rotulos de los nodos del arbol con un recorrido de postorden.
+	 * @return cadena de texto con los rotulos de los nodos del arbol con un recorrido de postorden.
+	 */
+	public String mostrarRecorridoPosorden() {
 		String recorrido = "";
 		try {
 			recorrido += this.PosOrden(this.arbolGeneral.root());
@@ -259,6 +281,10 @@ public class Programa {
 		return recorrido;
 	}
 	
+	/**
+	 * Devuelve una cadena de texto con los rotulos de los nodos del arbol donde en cada linea se mostraran los rotulos con el mismo nivel (altura).
+	 * @return cadena de texto con los rotulos por niveles.
+	 */
 	public String mostrarPorNiveles() {
 		String texto = "";
 		Queue<Position<Entry<String,Integer>>> cola = new QueueEnlazada<Position<Entry<String,Integer>>>();
@@ -282,16 +308,47 @@ public class Programa {
 
 	}
 	
-	public boolean eliminarNodosGradoK(int k) {
-		boolean seCompleto = false;
+	public String eliminarNodosGradoK(int k) {
+		String textoDeLosRotulos = "";
 		
-		return seCompleto;
+		Dictionary<Integer,String> diccionario = new DiccionarioConHashAbierto<Integer,String>();
+		Iterator<Entry<String,Integer>> it = this.arbolGeneral.iterator();
+		
+		//Cada entrada del arbol, las inserto al diccionario donde la clave es el grado de la entrada y el valor el rotulo de la entrada. Ademas se registra el grado del arbol.
+		while(it.hasNext()) {
+			Entry<String,Integer> entrada = it.next();
+			try {
+				diccionario.insert(entrada.getValue(), entrada.getKey());
+			} catch (InvalidKeyException e) {}
+		}
+		
+		try {
+			Iterable<Entry<Integer,String>> iterableDeGradoK = diccionario.findAll(k);
+			for(Entry<Integer,String> entrada : iterableDeGradoK) {
+				textoDeLosRotulos += " "+entrada.getValue()+",";
+				this.eliminarNodo(entrada.getValue());
+			}
+		} catch (InvalidKeyException | InvalidPositionException e) {e.fillInStackTrace();}
+		
+		if(textoDeLosRotulos.length() != 0) {
+			textoDeLosRotulos = textoDeLosRotulos.substring(0, textoDeLosRotulos.length() -1)+".";
+		}
+		return textoDeLosRotulos;
 	}
 	
+	/**
+	 * Devuelve la cantidad de nodos que tiene el árbol.
+	 * @return entero que corresponde al tamaño del árbol.
+	 */
 	public int obtenerTamañoDelArbol() {
 		return this.arbolGeneral.size();
 	}
 	
+	/**
+	 * Devuelve una cadena de texto con los rotulos de forma preorden.
+	 * @param v posicion desde que se empieza a recorrer de forma preorden.
+	 * @return cadena de texto con los rotulos de manera preorden desde la posicion de la entrada pasada por parametro.
+	 */
 	private String PreOrden(Position<Entry<String,Integer>> v) {
 		String recorrido = ""+v.element().getKey();
 		try {
@@ -302,6 +359,11 @@ public class Programa {
 		return recorrido;
 	}
 	
+	/**
+	 * Devuelve una cadena de texto con los rotulos de forma posOrden.
+	 * @param v posicion desde que se empieza a recorrer de forma posorden.
+	 * @return cadena de texto con los rotulos de manera posorden desde la posicion de la entrada pasada por parametro.
+	 */
 	private String PosOrden( Position<Entry<String,Integer>> v) {
 		String recorrido = "";
 		try {
@@ -316,51 +378,18 @@ public class Programa {
 				recorrido += "-";
 			}
 			
-			
 		} catch (InvalidPositionException e) {}
 		return recorrido;
 	}
 	
-	public String rotuloDeLaRaiz() {
-		String rotulo = null;
-		try {
-			rotulo = this.arbolGeneral.root().element().getKey();
-		} catch (EmptyTreeException e) {
-			e.fillInStackTrace();
-		}
-		return rotulo;
-	}
-	
-	public int valorDeLaRaiz() {
-		int valor = 0;
-		try {
-			valor = this.arbolGeneral.root().element().getValue();
-		} catch (EmptyTreeException e) {
-			e.fillInStackTrace();
-		}
-		return valor;
-	}
-	
+	/**
+	 * Establece los parametros tal cual estan cuando se solicita el constructor de la clase.
+	 */
 	public void condicionesIniciales() {
 		this.seCreoArbol = false;
 		this.seCreoRaiz = false;
+		this.arbolGeneral = null;
 	}
-	
-	private int height(Position<Entry<String, Integer>> v) throws InvalidPositionException {
-
-		int altura = 0;
-		if(this.arbolGeneral.isExternal(v)) {
-			return 0;
-		} else {
-			for(Position<Entry<String,Integer>> w: this.arbolGeneral.children(v)) {
-				altura = Math.max(altura, this.height(w));
-			}
-			return 1+altura;
-		}
-	}
-	
-	
-	
 }
 
 	

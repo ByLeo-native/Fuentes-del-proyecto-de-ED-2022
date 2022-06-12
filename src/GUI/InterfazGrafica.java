@@ -129,7 +129,7 @@ public class InterfazGrafica extends JFrame {
 		cbAction.addItem("6- Obtener camino");
 		cbAction.addItem("7- Mostrar recorrido pre-orden");
 		cbAction.addItem("8- Mostrar recorrido por niveles");
-		cbAction.addItem("9- Mostrar recorrido post-orden");
+		cbAction.addItem("9- Mostrar recorrido pos-orden");
 		cbAction.addItem("10- Eliminar nodos grado k");
 		cbAction.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		
@@ -153,7 +153,7 @@ public class InterfazGrafica extends JFrame {
 				 * 5- Obtener camino
 				 * 6- Mostrar recorrido pre-orden
 				 * 7- Mostrar recorrido por niveles
-				 * 8- Mostrar recorrido post-orden
+				 * 8- Mostrar recorrido pos-orden
 				 * 9- Eliminar nodos grado k
 				 */
 				//Para todas las opciones requiero los valores de algun nodo definido
@@ -219,7 +219,7 @@ public class InterfazGrafica extends JFrame {
 				} else if( intComboBox == 7) {
 					taDisplay.setText("Recorrido por niveles: \n"+programa.mostrarPorNiveles());
 				} else if( intComboBox == 8) {
-					taDisplay.setText("Recorrido Postorden: "+programa.mostrarRecorridoPostorden());
+					taDisplay.setText("Recorrido Posorden: "+programa.mostrarRecorridoPosorden());
 				} else if( intComboBox == 9) {
 				
 				}
@@ -242,7 +242,7 @@ public class InterfazGrafica extends JFrame {
 				 * 5- Obtener camino
 				 * 6- Mostrar recorrido pre-orden
 				 * 7- Mostrar recorrido por niveles
-				 * 8- Mostrar recorrido post-orden
+				 * 8- Mostrar recorrido pos-orden
 				 * 9- Eliminar nodos grado k
 				 */
 				//Obtengo el indice de la opcion selecciona de la combo box
@@ -303,7 +303,7 @@ public class InterfazGrafica extends JFrame {
 						limpiarInputs();
 						tfNuevoRotulo.setEditable(false);
 						tfRotuloDeNodoDefinido.setEditable(false);
-						btnIngresarValores.setText("Mostrar recorrido post-orden");
+						btnIngresarValores.setText("Mostrar recorrido pos-orden");
 					} else if(indexComboBox == 9) {
 						limpiarInputs();
 						tfNuevoRotulo.setEditable(false);
@@ -311,8 +311,8 @@ public class InterfazGrafica extends JFrame {
 						
 						String k = JOptionPane.showInputDialog("Indica el grado k que deseas utilizar");
 						int intK = Integer.parseInt(k);
-						programa.eliminarNodosGradoK(intK);
-						crearVentanaEmergenteExitosa("¡Se eliminaron todos los nodos de grado"+intK+" del árbol!");
+						String textoDeLosRotulos = programa.eliminarNodosGradoK(intK);
+						crearVentanaEmergenteExitosa("¡Se eliminaron todos los nodos de grado "+intK+" del árbol! \n Los nodos eliminados fueron: "+textoDeLosRotulos);
 					}
 				}
 				

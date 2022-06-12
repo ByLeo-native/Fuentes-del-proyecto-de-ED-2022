@@ -156,7 +156,6 @@ public class InterfazGrafica extends JFrame {
 				 * 8- Mostrar recorrido post-orden
 				 * 9- Eliminar nodos grado k
 				 */
-				boolean seCompleto = false;
 				//Para todas las opciones requiero los valores de algun nodo definido
 				String sRotuloDeNodoDefinido = null;
 				//Para las opciones que requieren de los datos de un nodo definido, obtengo los valores de los textField
@@ -212,20 +211,18 @@ public class InterfazGrafica extends JFrame {
 				} else if( intComboBox == 2 ) { //Eliminar nodo
 
 					try {
-						seCompleto = programa.eliminarNodo(sRotuloDeNodoDefinido);
+						programa.eliminarNodo(sRotuloDeNodoDefinido);
 						crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+sRotuloDeNodoDefinido+" del arbol!</html>");
 					} catch (InvalidPositionException error) {
 						crearVentanaEmergenteFallida(error.getMessage());
 					}
 				} else if( intComboBox == 3) {
-					
 					taDisplay.setText(programa.obtenerGrados());
-				
 				} else if( intComboBox == 4) {
 					crearVentanaEmergenteExitosa("Grado actual del árbol: "+programa.obtenerGradoDelArbol());
 				} else if( intComboBox == 5) {
 					try {
-						taDisplay.setText("Camino al nodo: "+programa.obtenerCamino(sRotuloDeNodoDefinido));
+						taDisplay.setText("Camino desde la raiz al nodo con rotulo "+sRotuloDeNodoDefinido+": \n" +programa.obtenerCamino(sRotuloDeNodoDefinido));
 					} catch (InvalidPositionException e1) {
 						crearVentanaEmergenteFallida(e1.getMessage());
 					}
@@ -335,8 +332,17 @@ public class InterfazGrafica extends JFrame {
 		});
 	}
 	
+	private void condicionesIniciales() {
+		this.programa.condicionesIniciales();
+		this.seCreoArbol = false;
+		cbAction.setSelectedIndex(0);
+		tfNuevoRotulo.setEditable(true);
+		tfRotuloDeNodoDefinido.setEditable(false);
+		this.btnIngresarValores.setText("Crear árbol");
+	}
+	
 	private boolean necesitaLosDatosDeUnNodoDefinido(int index) {
-		return index == 1 || index == 2 ;
+		return index == 1 || index == 2 || index == 5;
 	}
 	
 	private void crearVentanaEmergenteExitosa(String mensaje) {
@@ -355,6 +361,9 @@ public class InterfazGrafica extends JFrame {
 	private void actualizarPanelDatos() {
 		this.tamañoDelArbol = this.programa.obtenerTamañoDelArbol();
 		lbTamañoDelArbol.setText("Tamaño del arbol: "+this.tamañoDelArbol);
+		if(this.tamañoDelArbol == 0) {
+			condicionesIniciales();
+		}
 	}
 	
 	public static void main (String [] args) {

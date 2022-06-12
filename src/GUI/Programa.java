@@ -6,6 +6,7 @@ import Auxiliar.Queue;
 import Auxiliar.QueueEnlazada;
 import Excepciones.BoundaryViolationException;
 import Excepciones.EmptyQueueException;
+import Excepciones.EmptyStackException;
 import Excepciones.EmptyTreeException;
 import Excepciones.GInvalidOperationException;
 import Excepciones.InvalidEntryException;
@@ -19,13 +20,13 @@ import TDADiccionario.Dictionary;
 import TDALista.Position;
 import TDAMapeo.Entrada;
 import TDAMapeo.Entry;
+import TDAPila.PilaSimplementeEnlazada;
+import TDAPila.Stack;
 
 public class Programa {
 	private boolean seCreoArbol;
 	private boolean seCreoRaiz;
 	private Tree<Entry<String, Integer>> arbolGeneral;
-	private int gradoDelArbol;
-	private String rotuloDelNodoConMasDescendiente;
 		
 	public Programa () {
 		this.seCreoArbol = false;
@@ -113,19 +114,20 @@ public class Programa {
 			if(!this.arbolGeneral.isRoot(pos)) {
 				try {
 					posicionEntradaDelAncestro  = this.arbolGeneral.parent(pos);
+					//Obtengo informacion para actualizar al nodo padre del nodo a eliminar
+					gradoDelNodoAEliminar = pos.element().getValue();
+					rotuloDelNodoPadreDelNodoAEliminar = posicionEntradaDelAncestro.element().getKey();
+					gradoDelNodoPadreDelNodoAEliminar = posicionEntradaDelAncestro.element().getValue();
+					//El padre del nodo a eliminar tendra la cantidad de hijos que tiene + la cantidad de hijos que tiene el nodo a eliminar - 1 (por el nodo eliminado)
+					nuevoGradoDelPadreDelNodoAEliminar = gradoDelNodoPadreDelNodoAEliminar + gradoDelNodoAEliminar - 1;
+					//Actualizo al nodo padre del nodo eliminado con la cantidad correcta de hijos
+					this.arbolGeneral.replace(posicionEntradaDelAncestro , new Entrada <String,Integer>( rotuloDelNodoPadreDelNodoAEliminar, nuevoGradoDelPadreDelNodoAEliminar));
 				} catch (InvalidPositionException | BoundaryViolationException e) {throw new InvalidPositionException("Error");}	
 			}
-			//Obtengo informacion para actualizar al nodo padre del nodo a eliminar
-			gradoDelNodoAEliminar = pos.element().getValue();
-			rotuloDelNodoPadreDelNodoAEliminar = posicionEntradaDelAncestro.element().getKey();
-			gradoDelNodoPadreDelNodoAEliminar = posicionEntradaDelAncestro.element().getValue();
-			//El padre del nodo a eliminar tendra la cantidad de hijos que tiene + la cantidad de hijos que tiene el nodo a eliminar - 1 (por el nodo eliminado)
-			nuevoGradoDelPadreDelNodoAEliminar = gradoDelNodoPadreDelNodoAEliminar + gradoDelNodoAEliminar - 1;
+			
 			
 			//Elimino al nodo a eliminar
 			this.arbolGeneral.removeNode(pos);
-			//Actualizo al nodo padre del nodo eliminado con la cantidad correcta de hijos
-			this.arbolGeneral.replace(posicionEntradaDelAncestro , new Entrada <String,Integer>( rotuloDelNodoPadreDelNodoAEliminar, nuevoGradoDelPadreDelNodoAEliminar));
 		}
 		
 		return seEncontro;
@@ -171,6 +173,10 @@ public class Programa {
 		return textoCompleto;
 	}
 	
+	/**
+	 * Devuelve el grado del árbol
+	 * @return grado del árbol.
+	 */
 	public int obtenerGradoDelArbol() {
 		int maximoGradoEncontradoActualmente = 0;
 		
@@ -186,40 +192,54 @@ public class Programa {
 		return maximoGradoEncontradoActualmente;
 	}
 	
+	/**
+	 * Devuelve el camino desde la raiz del arbol hasta el nodo con el rotulo pasado por parametro.
+	 * @param rotulo String con el rotulo a buscar camino
+	 * @return Cadena de texto con el camino desde la raiz del arbol hasta el nodo con rotulo.
+	 * @throws InvalidPositionException si no se encuentra una entrada con el rotulo pasado por parametro.
+	 */
 	public String obtenerCamino(String rotulo) throws InvalidPositionException {
 		String camino = "";
+		
+		Stack<Entry<String,Integer>> pila = new PilaSimplementeEnlazada<Entry<String,Integer>>();
+		
+		//Buscar la posicion comparando los rotulos de las entradas.
+		
+		Iterator<Position<Entry<String,Integer>>> it = this.arbolGeneral.positions().iterator();
+		Position<Entry<String,Integer>> posBuscado = null;
 		boolean seEncontro = false;
-		Iterable<Position<Entry<String, Integer>>> list =this.arbolGeneral.positions();
-		Iterator<Position<Entry<String, Integer>>> it = list.iterator();
-		Position<Entry<String,Integer>> pos = null;
-		while(it.hasNext() && !seEncontro) {
-			Position<Entry<String, Integer>> aux = it.next();
-			if(aux.element().getKey().equals(rotulo)) {
+		//Busco la posicion de nodo con el rotulo buscado
+		while( it.hasNext() && !seEncontro ) {
+			Position<Entry<String, Integer>> posicionDeLaEntradaActual = it.next();
+			if( posicionDeLaEntradaActual.element().getKey().equals(rotulo)) {
 				seEncontro = true;
-				pos = aux;
+				posBuscado = posicionDeLaEntradaActual;
 			}
 		}
-		
+		//Si no se encontro, lanzo una excepcion
 		if(!seEncontro) {
-			throw new InvalidPositionException("No se encontro el nodo ancestro "+rotulo+" en el árbol");
+			throw new InvalidPositionException("No se ha encontrado el rotulo "+rotulo+" en el arbol.");
 		} else {
-			camino = ""+pos.element().getKey();
-			try {
-				Position<Entry<String,Integer>> posAscendente = this.arbolGeneral.parent(pos);
-				boolean seCompleto = false;
-				
-				while( !seCompleto ) {
-					camino += "--"+pos.element().getKey();
-					if( this.arbolGeneral.isRoot(posAscendente) ) {
-						seCompleto = true;
-					} else {
-						posAscendente = this.arbolGeneral.parent(posAscendente);
-					}
-				}
-			} catch (InvalidPositionException | BoundaryViolationException e) {}
+			Position<Entry<String,Integer>> posActual = posBuscado; 
+			//Mientras la posicion actual no sea la posicion de la raiz
+			while(!this.arbolGeneral.isRoot(posActual)) {
+				pila.push(posActual.element());
+				//Obtengo el padre de la posicion actual
+				try {
+					posActual = this.arbolGeneral.parent(posActual);
+				} catch (InvalidPositionException | BoundaryViolationException e) {}
+			}
+			//Ya siendo la posicion actual el nodo raiz
+			pila.push(posActual.element());//Pusheo la raiz
+			//Mientras la pila no este vacia
+			while(!pila.isEmpty()) {
+				try {
+					Entry<String, Integer> entrada = pila.pop(); //Desapilo una entrada
+					camino += "("+entrada.getKey()+", "+entrada.getValue()+")\n"; //Agrego la entrada en la ruta de camino
+				} catch (EmptyStackException e) {}
+			}
+			return camino; //Retorno el camino
 		}
-		return camino;
-		
 	}
 
 	public String mostrarRecorridoPreorden() {
@@ -266,64 +286,6 @@ public class Programa {
 		boolean seCompleto = false;
 		
 		return seCompleto;
-	}
-	
-	private void verificarGradoDelArbol(String rotuloDelNodoAVerificar, int cantidadDeDescendienteDeUnNodo) {
-		//Cada vez que se modifica el arbol, se utilizara el metodo para ver si hay que actualizar la variable gradoDelArbol y cual es el rotulo
-		if ( cantidadDeDescendienteDeUnNodo > this.gradoDelArbol ) {
-			this.gradoDelArbol = cantidadDeDescendienteDeUnNodo;
-			this.rotuloDelNodoConMasDescendiente = rotuloDelNodoAVerificar;
-		} else if (rotuloDelNodoAVerificar.equals(rotuloDelNodoConMasDescendiente)) {
-			//Si la cantidad pasada por parametro no es mayor al grado del arbol pero es el mismo rotulo --> se modifico el nodo que tenia mayor descendientes
-			this.buscarGradoDelArbol();
-		}	
-	}
-	
-	private void buscarGradoDelArbol() {
-		//Establezco inicialmente que el grado del arbol es cero
-		int mayorGradoEncontrado = 0;
-		String rotuloDelNodoDeMayorGradoEncontrado = "";
-		if(this.arbolGeneral.size() == 1) {
-			mayorGradoEncontrado = 1;
-			try {
-				rotuloDelNodoDeMayorGradoEncontrado  = this.arbolGeneral.root().element().getKey();
-			} catch (EmptyTreeException e) {}
-			
-		} else {
-			
-			Iterable<Position<Entry<String,Integer>>> positions = this.arbolGeneral.positions();
-			//Por cada posicion que referencia a un nodo del arbol
-			for( Position<Entry<String,Integer>> pos : positions) {
-				//Asumo que tiene cero o mas hijos
-				int cantDeHijosDePos = 0;
-				boolean esPosInternal = false;
-				
-				try {
-					esPosInternal = this.arbolGeneral.isInternal(pos);
-				} catch (InvalidPositionException e1) {}
-				
-				//Si el nodo que referencia pos es un nodo interno en el arbol
-				if(esPosInternal) {
-					Iterable<Position<Entry<String,Integer>>> hijosDePos = null;
-					try {
-						hijosDePos = this.arbolGeneral.children(pos);
-					} catch (InvalidPositionException e) {}
-					
-					for(Position<Entry<String,Integer>> poshijo: hijosDePos) {
-						cantDeHijosDePos++;
-					}
-					
-					if(cantDeHijosDePos > mayorGradoEncontrado) {
-						mayorGradoEncontrado = cantDeHijosDePos;
-						rotuloDelNodoDeMayorGradoEncontrado = pos.element().getKey();
-					}
-				}
-				
-			}
-		}
-		
-		//Luego de la busqueda, actualizo las variables por lo encontrado
-		this.gradoDelArbol = mayorGradoEncontrado;
 	}
 	
 	public int obtenerTamañoDelArbol() {
@@ -377,6 +339,11 @@ public class Programa {
 			e.fillInStackTrace();
 		}
 		return valor;
+	}
+	
+	public void condicionesIniciales() {
+		this.seCreoArbol = false;
+		this.seCreoRaiz = false;
 	}
 	
 	private int height(Position<Entry<String, Integer>> v) throws InvalidPositionException {

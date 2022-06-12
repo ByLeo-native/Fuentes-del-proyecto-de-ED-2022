@@ -568,7 +568,7 @@ public class ArbolGeneral <E> implements Tree <E> {
 	/**
 	 * Realiza un recorrido de pre-orden y agrega la posicion de cada elemento del arbol en una lista.
 	 * @param v Nodo desde que se comienza a recorrer.
-	 * @param list
+	 * @param list lista a agregar la posicion de los elementos.
 	 */
 	private void recPreorden( TNodo<E> v, PositionList<Position<E>> list) {
 		list.addLast(v);
@@ -577,6 +577,11 @@ public class ArbolGeneral <E> implements Tree <E> {
 		}
 	}
 	
+	/**
+	 * Realiza un recorrido de pre-orden y agrega cada elemento del arbol en una lista.
+	 * @param v Nodo desde que se comienza a recorrer.
+	 * @param list lista a agregar elementos.
+	 */
 	private void recPreordenPorElementos( TNodo<E> v, PositionList<E> list) {
 		list.addLast(v.element());
 		for( TNodo<E> h : v.getHijos() ) {

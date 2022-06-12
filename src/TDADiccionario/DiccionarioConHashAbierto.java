@@ -41,7 +41,7 @@ public class DiccionarioConHashAbierto <K,V> implements Dictionary <K,V>{
 	 * @return Verdadero si el diccionario está vacío, falso en caso contrario.
 	 */
 	public boolean isEmpty() {
-		return tamaño==0;
+		return this.tamaño==0;
 	}
 	
 	/**
@@ -141,6 +141,12 @@ public class DiccionarioConHashAbierto <K,V> implements Dictionary <K,V>{
 		return it;
 	}
 
+	/**
+	 * Devuelve el indice del bucket que le corresponde a cierta clave.
+	 * @param key clave de un entrada.
+	 * @return entero que corresponde al indice del bucket de la clave pasada por parametro.
+	 * @throws InvalidKeyException si la clave es invalida.
+	 */
 	private int hashCode(K key) throws InvalidKeyException {
 		if (key == null) {
 			throw new InvalidKeyException("Clave invalida");
@@ -189,7 +195,7 @@ public class DiccionarioConHashAbierto <K,V> implements Dictionary <K,V>{
 	}
 	
 	/**
-	 * Redimensiona el arreglo de buckets a un nuevo tamaño y reubica las entradas actuales.
+	 * Redimensiona el arreglo de buckets a un nuevo tamaño y reubica las entradas almacenadas.
 	 */
 	@SuppressWarnings("unchecked")
 	private void reHash() {

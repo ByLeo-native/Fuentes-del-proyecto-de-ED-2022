@@ -25,15 +25,11 @@ public class Programa {
 	private boolean seCreoRaiz;
 	private Tree<Entry<String, Integer>> arbolGeneral;
 	private int gradoDelArbol;
-	//Diccionario que almacena el rotulo de un nodo y la cantidad de descendiente que tiene
-	private Dictionary<String, Integer> diccionarioDeGrados;
-	private int ordenDelArbol;
 	private String rotuloDelNodoConMasDescendiente;
 		
 	public Programa () {
 		this.seCreoArbol = false;
 		this.arbolGeneral = null;
-		this.diccionarioDeGrados = new DiccionarioConHashAbierto< String, Integer>();
 	}
 	
 	public boolean crearArbol() {
@@ -42,9 +38,9 @@ public class Programa {
 		return true;
 	}
 	
-	public boolean crearRaiz(String rotuloDeLaRaiz, int valorDeLaRaiz)  throws InvalidOperationException {
+	public boolean crearRaiz(String rotuloDeLaRaiz)  throws InvalidOperationException {
 		boolean seEjecutoCompleto = false;
-		Entry<String, Integer> entrada = new Entrada<String,Integer>( rotuloDeLaRaiz, valorDeLaRaiz );
+		Entry<String, Integer> entrada = new Entrada<String,Integer>( rotuloDeLaRaiz, 0 );
 		try {
 			this.arbolGeneral.createRoot(entrada);	
 		} catch (InvalidOperationException e) {
@@ -52,18 +48,13 @@ public class Programa {
 		}
 		
 		this.seCreoRaiz = true;
-		this.ordenDelArbol = 1;
 		seEjecutoCompleto = true;
-		
-		try {
-			this.diccionarioDeGrados.insert( rotuloDeLaRaiz, 0);
-			this.rotuloDelNodoConMasDescendiente = rotuloDeLaRaiz;
-		} catch (InvalidKeyException e) {}
 		
 		return seEjecutoCompleto ;
 	}
 	
-	public boolean agregarNodo( String rotuloDeNuevoNodo, int valorDeNuevoNodo, String rotuloDelNodoAncestro, int valorDelNodoAncestro) throws InvalidPositionException, GInvalidOperationException {
+	public int agregarNodo( String rotuloDeNuevoNodo, String rotuloDelNodoAncestro) throws InvalidPositionException, GInvalidOperationException {
+		int nuevoGradoDelNodoAncestro = 0;
 		boolean seEncontro = false;
 		if(!seCreoArbol || !seCreoRaiz) {
 			throw new GInvalidOperationException("Error en ejecucion");
@@ -81,49 +72,30 @@ public class Programa {
 			}
 			
 			if(!seEncontro) {
-				throw new InvalidPositionException("No se encontro el nodo ancestro ( "+rotuloDelNodoAncestro+", "+valorDelNodoAncestro+") en el árbol");
+				throw new InvalidPositionException("No se encontro el nodo ancestro "+rotuloDelNodoAncestro+" en el árbol");
 			} else {
-				//Si se encontro la posicion del nodo a agregar un nuevo nodo, creo el objeto de tipo entrada que tendra el rotulo y el entero de 
-				Entry<String, Integer> entradaNueva = new Entrada<String, Integer>(rotuloDeNuevoNodo, valorDeNuevoNodo);
+				nuevoGradoDelNodoAncestro = pos.element().getValue() + 1;
+				//Si se encontro la posicion del nodo a agregar un nuevo nodo, creo el objeto de tipo entrada que tendra el rotulo y con grado 0
+				Entry<String, Integer> entradaNueva = new Entrada<String, Integer>(rotuloDeNuevoNodo, 0);
 				this.arbolGeneral.addLastChild(pos, entradaNueva);
-			
-				//Parte que actualiza el diccionario con la cantidad de hijos de un nodo
-				
-				Entry<String,Integer> entrada = null;
-				try {
-					//Agrego al nuevo nodo con cero descendientes
-					this.diccionarioDeGrados.insert(rotuloDeNuevoNodo, 0);
-					
-					entrada = this.diccionarioDeGrados.find(rotuloDelNodoAncestro);
-				
-					//Si no encuentra la clave en el diccionario, la agrega con cantidad de hijos igual a 0
-					if( entrada == null ) {
-						System.out.println("Esto es raro");
-					} else {
-						//Si encontro la clave en el diccionario
-						//Obtengo la cantidad de hijos actual de la entrada ancestro
-						int cantDeHijosDelAncestro = entrada.getValue();
-						
-						int nuevaCantDeHijosDelAncestro = cantDeHijosDelAncestro + 1;
-						//Remuevo la entrada ancestro del diccionario
-						this.diccionarioDeGrados.remove(entrada);
-						//Vuelvo a agregar al diccionario con el mismo rotulo pero con actualizando la cantidad de descendientes
-						this.diccionarioDeGrados.insert(rotuloDelNodoAncestro, nuevaCantDeHijosDelAncestro);
-						
-						this.verificarGradoDelArbol( rotuloDelNodoAncestro, nuevaCantDeHijosDelAncestro);
-					} 
-				} catch (InvalidKeyException | InvalidEntryException e1) {
-					System.out.println("Algo salio mal");
-				}
+				//Actualizo el grado del nodo del ancestro
+				this.arbolGeneral.replace(pos, new Entrada<String,Integer>( rotuloDelNodoAncestro, nuevoGradoDelNodoAncestro));
 			}
-			return seEncontro;
+			return nuevoGradoDelNodoAncestro;
 		}
 	}
 	
 	public boolean eliminarNodo( String rotuloDelNodo) throws InvalidPositionException {
-
+		Position<Entry<String,Integer>> posicionEntradaDelAncestro = null;
+		
+		String rotuloDelNodoPadreDelNodoAEliminar = "";
+		int gradoDelNodoPadreDelNodoAEliminar = 0;
+		int gradoDelNodoAEliminar = 0;
+	
+		int nuevoGradoDelPadreDelNodoAEliminar = 0;
+		
 		boolean seEncontro = false;
-		Iterable<Position<Entry<String, Integer>>> list =this.arbolGeneral.positions();
+		Iterable<Position<Entry<String, Integer>>> list = this.arbolGeneral.positions();
 		Iterator<Position<Entry<String, Integer>>> it = list.iterator();
 		Position<Entry<String,Integer>> pos = null;
 		while(it.hasNext() && !seEncontro) {
@@ -137,48 +109,23 @@ public class Programa {
 		if(!seEncontro) {
 			throw new InvalidPositionException("No se encontro el nodo ancestro ( "+rotuloDelNodo+") en el árbol");
 		} else {
-			
-			int cantidadDeHijosDelAncestro = 0;
-			int cantidadDeHijosDelNodo = 0;
-			String rotuloDelAncestroDelNodoRemovido = null;
-			Entry<String,Integer> entradaDelAncestro = null;
 			//Obtengo informacion del nodo ancestro del ARBOL antes de eliminarlo
 			if(!this.arbolGeneral.isRoot(pos)) {
 				try {
-					entradaDelAncestro = this.arbolGeneral.parent(pos).element();
-					rotuloDelAncestroDelNodoRemovido = entradaDelAncestro.getKey();
-				} catch (InvalidPositionException | BoundaryViolationException e) {
-					System.out.println("Algo mal salio (1)");
-				}
-					
+					posicionEntradaDelAncestro  = this.arbolGeneral.parent(pos);
+				} catch (InvalidPositionException | BoundaryViolationException e) {throw new InvalidPositionException("Error");}	
 			}
+			//Obtengo informacion para actualizar al nodo padre del nodo a eliminar
+			gradoDelNodoAEliminar = pos.element().getValue();
+			rotuloDelNodoPadreDelNodoAEliminar = posicionEntradaDelAncestro.element().getKey();
+			gradoDelNodoPadreDelNodoAEliminar = posicionEntradaDelAncestro.element().getValue();
+			//El padre del nodo a eliminar tendra la cantidad de hijos que tiene + la cantidad de hijos que tiene el nodo a eliminar - 1 (por el nodo eliminado)
+			nuevoGradoDelPadreDelNodoAEliminar = gradoDelNodoPadreDelNodoAEliminar + gradoDelNodoAEliminar - 1;
+			
 			//Elimino al nodo a eliminar
 			this.arbolGeneral.removeNode(pos);
-			
-			//Modifico al diccionario
-			//Ya eliminado, prosigo actualizando al nodo ancestro en el diccionario
-			try {
-				//Obtengo la entrada "del diccionario" del nodo eliminado
-				Entry<String,Integer> entradaDelDiccionario = this.diccionarioDeGrados.find(rotuloDelNodo);
-				//Obtengo la cantidad de descendientes que tenia
-				cantidadDeHijosDelNodo = entradaDelDiccionario.getValue();
-				//Remuevo de la lista al nodo eliminado
-				this.diccionarioDeGrados.remove(entradaDelDiccionario);
-				
-				Entry<String,Integer> entradaDelAncestroDelDiccionario = this.diccionarioDeGrados.find(rotuloDelAncestroDelNodoRemovido);
-				cantidadDeHijosDelAncestro = entradaDelAncestroDelDiccionario.getValue();
-				//Elimino al nodo ancestro para luego volver a insertarlo con la cantidad de hijos actualizado
-				this.diccionarioDeGrados.remove(entradaDelAncestroDelDiccionario);
-				
-				int nuevaCantidadDeDescendienteDelAncestro = cantidadDeHijosDelAncestro + cantidadDeHijosDelNodo - 1;
-
-				//Inserto al ancestro del nodo eliminado y para los descendientes tengo: la cantidad que tenia + la cantidad de descendientes que tenia el nodo eliminado - uno por el nodo eliminado
-				this.diccionarioDeGrados.insert(rotuloDelAncestroDelNodoRemovido, nuevaCantidadDeDescendienteDelAncestro );
-
-				this.verificarGradoDelArbol( rotuloDelAncestroDelNodoRemovido, nuevaCantidadDeDescendienteDelAncestro);
-			} catch (InvalidKeyException | InvalidEntryException e) {
-				System.out.println("Algo salio mal (2)");
-			}
+			//Actualizo al nodo padre del nodo eliminado con la cantidad correcta de hijos
+			this.arbolGeneral.replace(posicionEntradaDelAncestro , new Entrada <String,Integer>( rotuloDelNodoPadreDelNodoAEliminar, nuevoGradoDelPadreDelNodoAEliminar));
 		}
 		
 		return seEncontro;
@@ -186,35 +133,38 @@ public class Programa {
 	}
 	
 	public String obtenerGrados() {
-		/*
-		 * Se crea un arreglo que tendra el tamaño del grado del arbol, cada indice del arreglo 
-		 * coincidira con la cantidad de descendiente de los nodos 
-		 * donde se almacenaran sus respectivos rotulos
-		 */
 		String textoCompleto = "";
-		if( this.seCreoRaiz ) {
+		
+		int gradoDelArbol = 0;
+		
+		Dictionary<Integer, String> diccionario = new DiccionarioConHashAbierto<Integer,String>();
+		
+		Iterator<Entry<String,Integer>> it = this.arbolGeneral.iterator();
+		
+		while(it.hasNext()) {
+			Entry<String,Integer> entrada = it.next();
+			try {
+				diccionario.insert(entrada.getValue(), entrada.getKey());
+			} catch (InvalidKeyException e) {}
 			
-			for( int i = 0; i <= this.gradoDelArbol; i++) {
-				String [] arreglo = new String [this.diccionarioDeGrados.size()];
-				int cant= 0;
-				textoCompleto += "Nodos con "+i+" hijos: ";
-				for(Entry<String,Integer> entrada : this.diccionarioDeGrados.entries()) {
-					if( entrada.getValue() == i) {
-						arreglo[cant++] = entrada.getKey();
-					}
+			if( gradoDelArbol < entrada.getValue()) {
+				gradoDelArbol = entrada.getValue();
+			}
+		}
+		
+		for( int i = 0; i <= gradoDelArbol; i++) {
+			
+			String textoPorGrado = "Nodos de grado "+i+":";
+			String textoDeLosRotulos = "";
+			try {
+				for(Entry<Integer,String> entrada : diccionario.findAll(i)) {
+					textoDeLosRotulos += " "+entrada.getValue()+",";
 				}
-				boolean aunFaltaPorVer = true;
-				int j = 0;
-				while( j < arreglo.length && aunFaltaPorVer ) {
-					if(arreglo[j] == null) {
-						aunFaltaPorVer = false;
-					} else {
-						textoCompleto += arreglo[j]+" "; 
-						j++;
-					}
-				}
-				
-				textoCompleto += "\n";
+			} catch (InvalidKeyException e) {e.printStackTrace();}
+			if(textoDeLosRotulos.length() != 0) {
+				textoPorGrado += textoDeLosRotulos;
+				textoPorGrado = textoPorGrado.substring(0, textoPorGrado.length() -1)+".";
+				textoCompleto += textoPorGrado+"\n";
 			}
 		}
 		
@@ -222,10 +172,21 @@ public class Programa {
 	}
 	
 	public int obtenerGradoDelArbol() {
-		return this.gradoDelArbol;
+		int maximoGradoEncontradoActualmente = 0;
+		
+		Iterator<Entry<String,Integer>> it = this.arbolGeneral.iterator();
+		
+		while(it.hasNext()) {
+			int gradoDelNodoActual = it.next().getValue();
+			if( maximoGradoEncontradoActualmente < gradoDelNodoActual ) {
+				maximoGradoEncontradoActualmente = gradoDelNodoActual;
+			}
+		}
+		
+		return maximoGradoEncontradoActualmente;
 	}
 	
-	public String obtenerCamino(String rotulo, int valor) throws InvalidPositionException {
+	public String obtenerCamino(String rotulo) throws InvalidPositionException {
 		String camino = "";
 		boolean seEncontro = false;
 		Iterable<Position<Entry<String, Integer>>> list =this.arbolGeneral.positions();
@@ -240,7 +201,7 @@ public class Programa {
 		}
 		
 		if(!seEncontro) {
-			throw new InvalidPositionException("No se encontro el nodo ancestro ( "+rotulo+", "+valor+") en el árbol");
+			throw new InvalidPositionException("No se encontro el nodo ancestro "+rotulo+" en el árbol");
 		} else {
 			camino = ""+pos.element().getKey();
 			try {
@@ -303,24 +264,7 @@ public class Programa {
 	
 	public boolean eliminarNodosGradoK(int k) {
 		boolean seCompleto = false;
-		int cant = 0;
 		
-		String [] arreglo = new String [this.arbolGeneral.size()];
-		
-		//Almaceno los rotulos de los nodos con orden k
-		for(Entry<String,Integer> e : this.diccionarioDeGrados.entries()) {
-			if(e.getValue().equals(k)) {
-				arreglo[cant++] = e.getKey();
-			}
-		}
-		
-		//Por cada rotulo del arreglo, voy a eliminar con la funcion eliminarNodo()
-		for(int i = 0; i < arreglo.length ; i++) {
-			try {
-				this.eliminarNodo(arreglo[i]);
-			} catch (InvalidPositionException e1) {}
-		}
-		seCompleto = true;
 		return seCompleto;
 	}
 	

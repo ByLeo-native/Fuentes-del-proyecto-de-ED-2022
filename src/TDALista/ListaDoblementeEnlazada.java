@@ -248,6 +248,12 @@ public class ListaDoblementeEnlazada <E> implements PositionList <E> {
 			DNodo<E> aRetornar;
 			try {
 				aRetornar = (DNodo<E>)p;
+				
+				//Protejo los centinelas
+				if(aRetornar.equals(this.head) || aRetornar.equals(this.tail)) {
+					throw new InvalidPositionException("Posicion invalida");
+				}
+				
 			} catch ( ClassCastException e) {
 				throw new InvalidPositionException("Posicion invalida");
 			}

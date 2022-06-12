@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -16,15 +18,16 @@ import Excepciones.InvalidPositionException;
 public class InterfazGrafica extends JFrame {
 	
 	private Programa programa;
-	private JPanel pnOperacion, pnDatos, pnDisplay;
+	private JPanel pnOperacion, pnDatos, pnDisplay, pnDisplayRegistro;
 	private JComboBox<String> cbAction;
 	private JLabel lbNuevoRotulo, lbRotuloDeNodoDefinido, lbTamañoDelArbol;
 	private JTextField tfNuevoRotulo, tfRotuloDeNodoDefinido;
 	private JButton btnIngresarValores;
-	private JTextArea taDisplay;
+	private JTextArea taDisplay, taDisplayRegistro;
 	private boolean seCreoArbol;
-	private boolean seCreoRaiz;
 	private int tamañoDelArbol;
+	private int cantidadDeOperacionesEjecutadas;
+	private DateTimeFormatter time;
 	
 	public InterfazGrafica() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -34,7 +37,8 @@ public class InterfazGrafica extends JFrame {
 		getContentPane().setLayout(null);
 		
 		this.seCreoArbol = false;
-		this.seCreoRaiz = false;
+		this.cantidadDeOperacionesEjecutadas = 0;
+		this.time = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		
 		this.tamañoDelArbol = 0;
 		this.programa = new Programa();
@@ -42,6 +46,7 @@ public class InterfazGrafica extends JFrame {
 		this.armarPanelIngresarValores();
 		this.armarPanelDatos();
 		this.armarPanelDeTexto();
+		this.armarPanelDeRegistro();
 	}
 	
 	private void armarPanelIngresarValores() {
@@ -115,6 +120,26 @@ public class InterfazGrafica extends JFrame {
 		getContentPane().add(pnDisplay);
 	}
 	
+	private void armarPanelDeRegistro() {
+		pnDisplayRegistro = new JPanel();
+		pnDisplayRegistro.setBounds( 8, 300, 824, 134);
+		pnDisplayRegistro.setBorder(BorderFactory.createTitledBorder("Historial"));
+		pnDisplayRegistro.setLayout(null);
+		
+		taDisplayRegistro = new JTextArea();
+		taDisplayRegistro.setBounds(8, 16, 808, 110);
+		taDisplayRegistro.setEditable(false);
+		
+		JScrollPane scroll = new JScrollPane (taDisplayRegistro, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scroll.setBounds(8,16,808,110);
+		
+		pnDisplayRegistro.add(scroll);
+		
+		
+		getContentPane().add(pnDisplayRegistro);
+	}
+	
 	private void armarComboBox() {
 		cbAction = new JComboBox<String>();
 		cbAction.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -176,6 +201,7 @@ public class InterfazGrafica extends JFrame {
 					}
 					
 					if(seCreoArbol) {
+						actualizarHistorial("- Operacion 1: Se creo el nodo raiz del arbol con rotulo "+sRotuloIngresado+".");
 						//Lanzo mensaje de exito
 						crearVentanaEmergenteExitosa("<html>¡Se creo el nodo raiz del arbol de forma exitosa!"+
 								"<p>* Rotulo de la raiz: "+sRotuloIngresado+"<p>* Valor de la raiz: "+0+"</html>");
@@ -186,7 +212,7 @@ public class InterfazGrafica extends JFrame {
 						//Altero el texto del boton
 						btnIngresarValores.setText("Ingresar valores");
 						//Limpio los JTextField
-						limpiarInputs();	
+						limpiarInputs();
 					}
 				} else if( intComboBox == 1 ) { //Añadir nodo
 					
@@ -194,6 +220,7 @@ public class InterfazGrafica extends JFrame {
 						//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
 						String sRotuloIngresado = tfNuevoRotulo.getText();
 						int nuevoGradoDelNodoAncestro = programa.agregarNodo(sRotuloIngresado, sRotuloDeNodoDefinido);
+						actualizarHistorial("- Operacion 2: Se añadio el nodo ("+sRotuloIngresado+", "+0+") que tiene como padre al nodo ("+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+").");
 						//Ventana emergente de que se logro añadir un nodo
 						crearVentanaEmergenteExitosa("<html>"
 								+ "Se añadio un nuevo hijo al nodo ( "+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+")"
@@ -204,22 +231,30 @@ public class InterfazGrafica extends JFrame {
 
 					try {
 						programa.eliminarNodo(sRotuloDeNodoDefinido);
+						actualizarHistorial("- Operacion 3: Se elimino el nodo raiz del arbol con rotulo "+sRotuloDeNodoDefinido+".");
 						crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+sRotuloDeNodoDefinido+" del arbol!</html>");
+						
 					} catch (InvalidPositionException error) {crearVentanaEmergenteFallida(error.getMessage());}
 				} else if( intComboBox == 3) { //Obtener grados
 					taDisplay.setText(programa.obtenerGrados());
+					actualizarHistorial("- Operacion 4: Se solicito obtener los grados de los nodos del arbol");
 				} else if( intComboBox == 4) { //Obtener grado del arbol
+					actualizarHistorial("- Operacion 5: Se solicito obtener el grado del arbol");
 					crearVentanaEmergenteExitosa("Grado actual del árbol: "+programa.obtenerGradoDelArbol());
 				} else if( intComboBox == 5) { //Obtener camino
 					try {
 						taDisplay.setText("Camino desde la raiz al nodo con rotulo "+sRotuloDeNodoDefinido+": \n" +programa.obtenerCamino(sRotuloDeNodoDefinido));
+						actualizarHistorial("- Operacion 6: Se solicito mostrar el camino desde la raiz al nodo con rotulo "+sRotuloDeNodoDefinido);
 					} catch (InvalidPositionException e1) {crearVentanaEmergenteFallida(e1.getMessage());}
 				} else if( intComboBox == 6) {
 					taDisplay.setText("Recorrido Preorden: "+programa.mostrarRecorridoPreorden());
+					actualizarHistorial("- Operacion 7: Se solicito mostrar los rotulos del árbol con un recorrido preOrden");
 				} else if( intComboBox == 7) {
 					taDisplay.setText("Recorrido por niveles: \n"+programa.mostrarPorNiveles());
+					actualizarHistorial("- Operacion 8: Se solicito mostrar los rotulos del árbol por niveles");
 				} else if( intComboBox == 8) {
 					taDisplay.setText("Recorrido Posorden: "+programa.mostrarRecorridoPosorden());
+					actualizarHistorial("- Operacion 9: Se solicito mostrar los rotulos del árbol con un recorrido posOrden");
 				} else if( intComboBox == 9) {
 				
 				}
@@ -312,6 +347,7 @@ public class InterfazGrafica extends JFrame {
 						String k = JOptionPane.showInputDialog("Indica el grado k que deseas utilizar");
 						int intK = Integer.parseInt(k);
 						String textoDeLosRotulos = programa.eliminarNodosGradoK(intK);
+						actualizarHistorial("- Operacion 10: Se solicito eliminar a todos los nodos de grado "+intK+" del árbol. Los nodos eliminados fueron: "+textoDeLosRotulos);
 						crearVentanaEmergenteExitosa("¡Se eliminaron todos los nodos de grado "+intK+" del árbol! \n Los nodos eliminados fueron: "+textoDeLosRotulos);
 					}
 				}
@@ -352,6 +388,11 @@ public class InterfazGrafica extends JFrame {
 		if(this.tamañoDelArbol == 0) {
 			condicionesIniciales();
 		}
+	}
+	
+	private void actualizarHistorial(String msg) {
+		taDisplayRegistro.setText(taDisplayRegistro.getText()+this.cantidadDeOperacionesEjecutadas+" - "+time.format(LocalDateTime.now())+" " +msg+"\n");
+		this.cantidadDeOperacionesEjecutadas++;
 	}
 	
 	public static void main (String [] args) {

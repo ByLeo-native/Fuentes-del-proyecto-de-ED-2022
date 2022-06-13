@@ -3,7 +3,6 @@ package GUI;
 import java.awt.Container;
 import java.util.Iterator;
 
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -50,13 +49,10 @@ public class Programa {
 	}
 	
 	/**
-	 * Crea la raiz del arbol con un rotulo pasado por parametro y 
-	 * @param rotuloDeLaRaiz
-	 * @param tree
-	 * @param panel
-	 * @param contenedor
-	 * @return
-	 * @throws InvalidOperationException
+	 * Se crea la raiz del árbol con un rotulo y sin hijos.
+	 * @param rotuloDeLaRaiz String del rotulo de la raiz.
+	 * @return verdadero si se creo la raiz.
+	 * @throws InvalidOperationException si el árbol ya contaba con una raiz.
 	 */
 	public boolean crearRaiz(String rotuloDeLaRaiz)  throws InvalidOperationException {
 		boolean seEjecutoCompleto = false;
@@ -111,8 +107,6 @@ public class Programa {
 				this.actualizarArbolDeLaGUI( tree, panel, contenedor);
 			}
 			
-			
-			
 			return nuevoGradoDelNodoAncestro;
 		}
 	}
@@ -160,7 +154,6 @@ public class Programa {
 					this.arbolGeneral.replace(posicionEntradaDelAncestro , new Entrada <String,Integer>( rotuloDelNodoPadreDelNodoAEliminar, nuevoGradoDelPadreDelNodoAEliminar));
 				} catch (InvalidPositionException | BoundaryViolationException e) {throw new InvalidPositionException("Error");}	
 			}
-			
 			
 			//Elimino al nodo a eliminar
 			this.arbolGeneral.removeNode(pos);
@@ -331,6 +324,11 @@ public class Programa {
 
 	}
 	
+	/**
+	 * Elimina todos los nodos con un grado indicado y devuelve una cadena de texto con los rotulos de los nodos eliminados.
+	 * @param k Grado de los nodos a eliminar.
+	 * @return String con los rotulos de los nodos eliminados.
+	 */
 	public String eliminarNodosGradoK(int k) {
 		String textoDeLosRotulos = "";
 		
@@ -405,6 +403,12 @@ public class Programa {
 		return recorrido;
 	}
 	
+	/**
+	 * Crea un panel con scroll que tiene un árbol que contendra los nodos del árbol.
+	 * @param tree JTree referencia del árbol de la GUI.
+	 * @param panel JScrollPane referencia del panel con scroll de la GUI.
+	 * @param contenedor Container contenedor donde se añadira el panel.
+	 */
 	public void actualizarArbolDeLaGUI(JTree tree, JScrollPane panel, Container contenedor) {
 		try {
 			Position<Entry<String,Integer>> posDeLaRaiz = this.arbolGeneral.root();
@@ -430,6 +434,12 @@ public class Programa {
 		} catch (EmptyTreeException | InvalidPositionException e) {}
 	}
 	
+	/**
+	 * Metodo auxiliar que añade un nodo hijo a su correspondiente nodo padre de un árbol JTree.
+	 * @param tree JTree referencia del árbol de la GUI.
+	 * @param hijo Posición del nodo en el árbol.
+	 * @param nodoAncestro DefaultMutableTreeNode referencia del nodo padre.
+	 */
 	private void actualizarArbolDeLaGUIAux(JTree tree, Position<Entry<String,Integer>> hijo, DefaultMutableTreeNode nodoAncestro) {
 		Entry<String,Integer> entrada = hijo.element();
 		DefaultMutableTreeNode nodo = new DefaultMutableTreeNode("("+entrada.getKey()+", "+entrada.getValue()+")");

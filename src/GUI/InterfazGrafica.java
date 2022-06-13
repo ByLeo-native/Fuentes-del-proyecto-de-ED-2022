@@ -49,9 +49,12 @@ public class InterfazGrafica extends JFrame {
 		this.armarPanelDatos();
 		this.armarPanelDeTexto();
 		this.armarPanelDeRegistro();
-		this.armarVisualizacionDelArbol(null);
+		this.armarVisualizacionDelArbol();
 	}
 	
+	/**
+	 * Arma el panel donde se ingresan los rotulos de los nodos.
+	 */
 	private void armarPanelIngresarValores() {
 		pnOperacion = new JPanel();
 		pnOperacion.setLayout(null);
@@ -79,6 +82,7 @@ public class InterfazGrafica extends JFrame {
 		tfRotuloDeNodoDefinido.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		tfRotuloDeNodoDefinido.setEditable(false);
 		
+		//Se añade las componentes a su correspondiente panel
 		pnOperacion.add(lbNuevoRotulo);
 		pnOperacion.add(tfNuevoRotulo);
 		pnOperacion.add(lbRotuloDeNodoDefinido);
@@ -93,6 +97,9 @@ public class InterfazGrafica extends JFrame {
 		pnOperacion.add(btnIngresarValores);
 	}
 	
+	/**
+	 * Arma el panel donde se muestra el tamaño del árbol.
+	 */
 	private void armarPanelDatos() {
 		pnDatos = new JPanel();
 		pnDatos.setBounds( 8, 200, 252, 96);
@@ -108,6 +115,9 @@ public class InterfazGrafica extends JFrame {
 		pnDatos.add(lbTamañoDelArbol);
 	}
 	
+	/**
+	 * Arma el panel donde se muestra el resultado de los metodos de recorridos y grados.
+	 */
 	private void armarPanelDeTexto() {
 		pnDisplay = new JPanel();
 		pnDisplay.setBounds( 276, 8, 324, 286);
@@ -123,8 +133,10 @@ public class InterfazGrafica extends JFrame {
 		getContentPane().add(pnDisplay);
 	}
 	
-	private void armarVisualizacionDelArbol(DefaultMutableTreeNode raiz) {
-		
+	/**
+	 * Arma el panel donde se hallara la representación del árbol.
+	 */
+	private void armarVisualizacionDelArbol() {
 		
 		pnDisplayTree = new JPanel();
 		pnDisplayTree.setBounds(608, 8, 222, 286);
@@ -135,6 +147,9 @@ public class InterfazGrafica extends JFrame {
 		
 	}
 	
+	/**
+	 * Arma el panel donde se muestran las operaciones ejecutadas.
+	 */
 	private void armarPanelDeRegistro() {
 		pnDisplayRegistro = new JPanel();
 		pnDisplayRegistro.setBounds( 8, 300, 824, 134);
@@ -154,6 +169,9 @@ public class InterfazGrafica extends JFrame {
 		getContentPane().add(pnDisplayRegistro);
 	}
 	
+	/**
+	 * Arma la combobox de las distintas operaciones.
+	 */
 	private void armarComboBox() {
 		cbAction = new JComboBox<String>();
 		cbAction.setFont(new Font("Tahoma", Font.PLAIN, 16));
@@ -177,6 +195,9 @@ public class InterfazGrafica extends JFrame {
 		getContentPane().add(cbAction);
 	}
 		
+	/**
+	 * Añade un oyente al boton al hacer click.
+	 */
 	private void armarOyenteBoton() {
 		btnIngresarValores.addActionListener( new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -292,6 +313,9 @@ public class InterfazGrafica extends JFrame {
 		});
 	}
 	
+	/**
+	 * Añade un oyente a la combobox al seleccionar una opción.
+	 */
 	private void armarOyenteComboBox() {
 		cbAction.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -387,6 +411,9 @@ public class InterfazGrafica extends JFrame {
 		});
 	}
 	
+	/**
+	 * Metodo que establece las condiones iniciales al borrar todos los nodos de un árbol.
+	 */
 	private void condicionesIniciales() {
 		this.programa.condicionesIniciales();
 		this.seCreoArbol = false;
@@ -396,18 +423,34 @@ public class InterfazGrafica extends JFrame {
 		this.btnIngresarValores.setText("Crear árbol");
 	}
 	
+	/**
+	 * Indica si el metodo seleccionado en la combobox necesita el rotulo de un nodo existente en el árbol.
+	 * @param index indice de la opción seleccionada de la combobox.
+	 * @return verdadero si necesita el rotulo de un nodo existente, falso en caso contrario.
+	 */
 	private boolean necesitaLosDatosDeUnNodoDefinido(int index) {
 		return index == 1 || index == 2 || index == 5;
 	}
 	
+	/**
+	 * Crea una ventana emergente de informacion con un mensaje.
+	 * @param mensaje String que se mostrara en la ventana.
+	 */
 	private void crearVentanaEmergenteExitosa(String mensaje) {
 		JOptionPane.showMessageDialog(null, mensaje, "Operacion exitosa", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
+	/**
+	 * Crea una ventana emergente de error con un mensaje.
+	 * @param mensaje String que se mostrara en la ventana.
+	 */
 	private void crearVentanaEmergenteFallida(String mensaje) {
 		JOptionPane.showMessageDialog(null, mensaje, "Operacion fallida", JOptionPane.ERROR_MESSAGE);
 	}
 	
+	/**
+	 * Borra el texto que se encuentre en los inputs de rotulos.
+	 */
 	private void limpiarInputs() {
 		tfNuevoRotulo.setText(null);
 		tfRotuloDeNodoDefinido.setText(null);

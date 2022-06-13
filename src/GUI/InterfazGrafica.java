@@ -9,16 +9,16 @@ import java.time.format.DateTimeFormatter;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 
 import Excepciones.GInvalidOperationException;
 import Excepciones.InvalidOperationException;
 import Excepciones.InvalidPositionException;
 
+@SuppressWarnings("serial")
 public class InterfazGrafica extends JFrame {
 	
 	private Programa programa;
-	private JPanel pnOperacion, pnDatos, pnDisplay, pnDisplayRegistro;
+	private JPanel pnOperacion, pnDatos, pnDisplay, pnDisplayRegistro, pnDisplayTree;
 	private JComboBox<String> cbAction;
 	private JLabel lbNuevoRotulo, lbRotuloDeNodoDefinido, lbTamañoDelArbol;
 	private JTextField tfNuevoRotulo, tfRotuloDeNodoDefinido;
@@ -28,6 +28,8 @@ public class InterfazGrafica extends JFrame {
 	private int tamañoDelArbol;
 	private int cantidadDeOperacionesEjecutadas;
 	private DateTimeFormatter time;
+	private JTree arbol;
+	private JScrollPane scroolPnArbol;
 	
 	public InterfazGrafica() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -37,7 +39,7 @@ public class InterfazGrafica extends JFrame {
 		getContentPane().setLayout(null);
 		
 		this.seCreoArbol = false;
-		this.cantidadDeOperacionesEjecutadas = 0;
+		this.cantidadDeOperacionesEjecutadas = 1;
 		this.time = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		
 		this.tamañoDelArbol = 0;
@@ -47,6 +49,7 @@ public class InterfazGrafica extends JFrame {
 		this.armarPanelDatos();
 		this.armarPanelDeTexto();
 		this.armarPanelDeRegistro();
+		this.armarVisualizacionDelArbol(null);
 	}
 	
 	private void armarPanelIngresarValores() {
@@ -83,7 +86,7 @@ public class InterfazGrafica extends JFrame {
 		
 		btnIngresarValores = new JButton("Crear árbol");
 		btnIngresarValores.setBounds( 8, 116, 236, 24);
-		btnIngresarValores.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		btnIngresarValores.setFont(new Font("Tahoma", Font.PLAIN, 15));
 
 		this.armarOyenteBoton();
 		
@@ -107,17 +110,29 @@ public class InterfazGrafica extends JFrame {
 	
 	private void armarPanelDeTexto() {
 		pnDisplay = new JPanel();
-		pnDisplay.setBounds( 276, 8, 250, 250);
-		pnDisplay.setBorder(BorderFactory.createTitledBorder(""));
+		pnDisplay.setBounds( 276, 8, 324, 286);
+		pnDisplay.setBorder(BorderFactory.createTitledBorder("Consola"));
 		pnDisplay.setLayout(null);
 		
 		taDisplay = new JTextArea();
-		taDisplay.setBounds(8, 8, 234, 234);
+		taDisplay.setBounds(8, 16, 308, 262);
 		taDisplay.setEditable(false);
 		
 		pnDisplay.add(taDisplay);
 		
 		getContentPane().add(pnDisplay);
+	}
+	
+	private void armarVisualizacionDelArbol(DefaultMutableTreeNode raiz) {
+		
+		
+		pnDisplayTree = new JPanel();
+		pnDisplayTree.setBounds(608, 8, 222, 286);
+		pnDisplayTree.setBorder(BorderFactory.createTitledBorder("Visualización del árbol"));
+		pnDisplayTree.setLayout(null);
+
+		getContentPane().add(pnDisplayTree);
+		
 	}
 	
 	private void armarPanelDeRegistro() {
@@ -135,7 +150,6 @@ public class InterfazGrafica extends JFrame {
 		scroll.setBounds(8,16,808,110);
 		
 		pnDisplayRegistro.add(scroll);
-		
 		
 		getContentPane().add(pnDisplayRegistro);
 	}
@@ -196,12 +210,16 @@ public class InterfazGrafica extends JFrame {
 						//Se crea el arbol 
 						programa.crearArbol();
 						seCreoArbol = programa.crearRaiz(sRotuloIngresado);
+						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
 					} catch (InvalidOperationException e1) {
 						crearVentanaEmergenteFallida("Hubo un error al ingresar los datos");
 					}
 					
 					if(seCreoArbol) {
+						//armarVisualizacionDelArbol(new DefaultMutableTreeNode("("+sRotuloIngresado+", 0)"));
 						actualizarHistorial("- Operacion 1: Se creo el nodo raiz del arbol con rotulo "+sRotuloIngresado+".");
+						//actualizar arbol de la gui
+						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
 						//Lanzo mensaje de exito
 						crearVentanaEmergenteExitosa("<html>¡Se creo el nodo raiz del arbol de forma exitosa!"+
 								"<p>* Rotulo de la raiz: "+sRotuloIngresado+"<p>* Valor de la raiz: "+0+"</html>");
@@ -219,8 +237,12 @@ public class InterfazGrafica extends JFrame {
 					try {
 						//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
 						String sRotuloIngresado = tfNuevoRotulo.getText();
-						int nuevoGradoDelNodoAncestro = programa.agregarNodo(sRotuloIngresado, sRotuloDeNodoDefinido);
+						int nuevoGradoDelNodoAncestro = programa.agregarNodo(sRotuloIngresado, sRotuloDeNodoDefinido, arbol, scroolPnArbol, pnDisplayTree);
 						actualizarHistorial("- Operacion 2: Se añadio el nodo ("+sRotuloIngresado+", "+0+") que tiene como padre al nodo ("+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+").");
+						
+						//actualizar arbol de la gui
+						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
+						
 						//Ventana emergente de que se logro añadir un nodo
 						crearVentanaEmergenteExitosa("<html>"
 								+ "Se añadio un nuevo hijo al nodo ( "+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+")"
@@ -232,6 +254,11 @@ public class InterfazGrafica extends JFrame {
 					try {
 						programa.eliminarNodo(sRotuloDeNodoDefinido);
 						actualizarHistorial("- Operacion 3: Se elimino el nodo raiz del arbol con rotulo "+sRotuloDeNodoDefinido+".");
+						
+						//actualizar arbol de la gui
+						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
+						
+						
 						crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+sRotuloDeNodoDefinido+" del arbol!</html>");
 						
 					} catch (InvalidPositionException error) {crearVentanaEmergenteFallida(error.getMessage());}
@@ -256,7 +283,7 @@ public class InterfazGrafica extends JFrame {
 					taDisplay.setText("Recorrido Posorden: "+programa.mostrarRecorridoPosorden());
 					actualizarHistorial("- Operacion 9: Se solicito mostrar los rotulos del árbol con un recorrido posOrden");
 				} else if( intComboBox == 9) {
-				
+					
 				}
 				limpiarInputs();
 				//Luego de cualquier accion -> actualizo el panel de datos
@@ -348,6 +375,10 @@ public class InterfazGrafica extends JFrame {
 						int intK = Integer.parseInt(k);
 						String textoDeLosRotulos = programa.eliminarNodosGradoK(intK);
 						actualizarHistorial("- Operacion 10: Se solicito eliminar a todos los nodos de grado "+intK+" del árbol. Los nodos eliminados fueron: "+textoDeLosRotulos);
+						
+						//actualizar arbol de la gui
+						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
+						
 						crearVentanaEmergenteExitosa("¡Se eliminaron todos los nodos de grado "+intK+" del árbol! \n Los nodos eliminados fueron: "+textoDeLosRotulos);
 					}
 				}

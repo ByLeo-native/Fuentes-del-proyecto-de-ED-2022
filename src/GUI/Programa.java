@@ -1,6 +1,12 @@
 package GUI;
 
+import java.awt.Container;
 import java.util.Iterator;
+
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import Auxiliar.Queue;
 import Auxiliar.QueueEnlazada;
@@ -9,7 +15,6 @@ import Excepciones.EmptyQueueException;
 import Excepciones.EmptyStackException;
 import Excepciones.EmptyTreeException;
 import Excepciones.GInvalidOperationException;
-import Excepciones.InvalidEntryException;
 import Excepciones.InvalidKeyException;
 import Excepciones.InvalidOperationException;
 import Excepciones.InvalidPositionException;
@@ -27,18 +32,32 @@ public class Programa {
 	private boolean seCreoArbol;
 	private boolean seCreoRaiz;
 	private Tree<Entry<String, Integer>> arbolGeneral;
-		
+	
+	/**
+	 * Constructor para la logica de la interfaz grafica.
+	 */
 	public Programa () {
 		this.seCreoArbol = false;
 		this.arbolGeneral = null;
 	}
 	
-	public boolean crearArbol() {
+	/**
+	 * Crea un objeto de tipo arbol general y lo instancia a una de las variables,
+	 */
+	public void crearArbol() {
 		this.arbolGeneral = new ArbolGeneral<Entry<String,Integer>>();
 		this.seCreoArbol = true;
-		return true;
 	}
 	
+	/**
+	 * Crea la raiz del arbol con un rotulo pasado por parametro y 
+	 * @param rotuloDeLaRaiz
+	 * @param tree
+	 * @param panel
+	 * @param contenedor
+	 * @return
+	 * @throws InvalidOperationException
+	 */
 	public boolean crearRaiz(String rotuloDeLaRaiz)  throws InvalidOperationException {
 		boolean seEjecutoCompleto = false;
 		Entry<String, Integer> entrada = new Entrada<String,Integer>( rotuloDeLaRaiz, 0 );
@@ -62,7 +81,7 @@ public class Programa {
 	 * @throws InvalidPositionException si no se encuentra la posicion del nodo con rotulo del que seria el nodo padre.
 	 * @throws GInvalidOperationException si aun no se creo el árbol y el árbol no tiene raiz.
 	 */
-	public int agregarNodo( String rotuloDeNuevoNodo, String rotuloDelNodoAncestro) throws InvalidPositionException, GInvalidOperationException {
+	public int agregarNodo( String rotuloDeNuevoNodo, String rotuloDelNodoAncestro, JTree tree, JScrollPane panel, Container contenedor) throws InvalidPositionException, GInvalidOperationException {
 		int nuevoGradoDelNodoAncestro = 0;
 		boolean seEncontro = false;
 		if(!seCreoArbol || !seCreoRaiz) {
@@ -89,7 +108,11 @@ public class Programa {
 				this.arbolGeneral.addLastChild(pos, entradaNueva);
 				//Actualizo el grado del nodo del ancestro
 				this.arbolGeneral.replace(pos, new Entrada<String,Integer>( rotuloDelNodoAncestro, nuevoGradoDelNodoAncestro));
+				this.actualizarArbolDeLaGUI( tree, panel, contenedor);
 			}
+			
+			
+			
 			return nuevoGradoDelNodoAncestro;
 		}
 	}
@@ -380,6 +403,46 @@ public class Programa {
 			
 		} catch (InvalidPositionException e) {}
 		return recorrido;
+	}
+	
+	public void actualizarArbolDeLaGUI(JTree tree, JScrollPane panel, Container contenedor) {
+		try {
+			Position<Entry<String,Integer>> posDeLaRaiz = this.arbolGeneral.root();
+			Entry<String,Integer> raiz = posDeLaRaiz.element();
+			
+			DefaultMutableTreeNode nodoRaiz = new DefaultMutableTreeNode("("+raiz.getKey()+", "+raiz.getValue()+")");
+			
+			
+			for(Position<Entry<String,Integer>> posHijo : this.arbolGeneral.children(posDeLaRaiz)) {
+				this.actualizarArbolDeLaGUIAux(tree, posHijo, nodoRaiz);
+			}
+			
+			tree = new JTree(nodoRaiz);
+			
+			for (int i = 0; i < tree.getRowCount(); i++) {
+			    tree.expandRow(i);
+			}
+			
+			panel = new JScrollPane(tree,JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+			panel.setBounds(8, 16, 206, 262);
+			contenedor.add(panel);
+			
+		} catch (EmptyTreeException | InvalidPositionException e) {}
+	}
+	
+	private void actualizarArbolDeLaGUIAux(JTree tree, Position<Entry<String,Integer>> hijo, DefaultMutableTreeNode nodoAncestro) {
+		Entry<String,Integer> entrada = hijo.element();
+		DefaultMutableTreeNode nodo = new DefaultMutableTreeNode("("+entrada.getKey()+", "+entrada.getValue()+")");
+		nodoAncestro.add(nodo);
+		
+		try {
+			if(this.arbolGeneral.isInternal(hijo)) {
+				
+				for(Position<Entry<String,Integer>> posHijo : this.arbolGeneral.children(hijo)) {
+					this.actualizarArbolDeLaGUIAux(tree, posHijo, nodo);
+				}
+			}
+		} catch (InvalidPositionException e) {}
 	}
 	
 	/**

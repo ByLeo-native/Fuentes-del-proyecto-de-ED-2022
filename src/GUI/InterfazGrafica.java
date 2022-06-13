@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 import Excepciones.GInvalidOperationException;
 import Excepciones.InvalidOperationException;
@@ -254,7 +253,6 @@ public class InterfazGrafica extends JFrame {
 						limpiarInputs();
 					}
 				} else if( intComboBox == 1 ) { //Añadir nodo
-					
 					try {
 						//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
 						String sRotuloIngresado = tfNuevoRotulo.getText();
@@ -271,14 +269,12 @@ public class InterfazGrafica extends JFrame {
 					} catch (InvalidPositionException | GInvalidOperationException e1) {crearVentanaEmergenteFallida(e1.getMessage());} 
 					
 				} else if( intComboBox == 2 ) { //Eliminar nodo
-
 					try {
 						programa.eliminarNodo(sRotuloDeNodoDefinido);
 						actualizarHistorial("- Operacion 3: Se elimino el nodo raiz del arbol con rotulo "+sRotuloDeNodoDefinido+".");
 						
 						//actualizar arbol de la gui
 						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
-						
 						
 						crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+sRotuloDeNodoDefinido+" del arbol!</html>");
 						
@@ -456,6 +452,9 @@ public class InterfazGrafica extends JFrame {
 		tfRotuloDeNodoDefinido.setText(null);
 	}
 	
+	/**
+	 * Actualiza los valores del panel de
+	 */
 	private void actualizarPanelDatos() {
 		this.tamañoDelArbol = this.programa.obtenerTamañoDelArbol();
 		lbTamañoDelArbol.setText("Tamaño del arbol: "+this.tamañoDelArbol);

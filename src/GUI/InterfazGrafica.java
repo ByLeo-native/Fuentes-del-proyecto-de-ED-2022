@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 
 import javax.swing.*;
 
+import Auxiliar.LimitadorCaracteres;
 import Excepciones.GInvalidOperationException;
 import Excepciones.InvalidOperationException;
 import Excepciones.InvalidPositionException;
@@ -70,6 +71,7 @@ public class InterfazGrafica extends JFrame {
 		tfNuevoRotulo.setBounds( 8, 40, 236, 20);
 		tfNuevoRotulo.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		tfNuevoRotulo.setEditable(true);
+		tfNuevoRotulo.setDocument(new LimitadorCaracteres(tfNuevoRotulo, 1));//Limito a que solo es pueda ingresar un caracter.
 		
 		//Creo el label de ingresar rotulo del nodo
 		lbRotuloDeNodoDefinido = new JLabel("Rotulo del nodo");
@@ -80,6 +82,7 @@ public class InterfazGrafica extends JFrame {
 		tfRotuloDeNodoDefinido.setBounds( 8, 88, 236, 20);
 		tfRotuloDeNodoDefinido.setFont(new Font("Tahoma", Font.PLAIN, 12));
 		tfRotuloDeNodoDefinido.setEditable(false);
+		tfRotuloDeNodoDefinido.setDocument(new LimitadorCaracteres(tfRotuloDeNodoDefinido,1));
 		
 		//Se añade las componentes a su correspondiente panel
 		pnOperacion.add(lbNuevoRotulo);
@@ -242,7 +245,7 @@ public class InterfazGrafica extends JFrame {
 						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
 						//Lanzo mensaje de exito
 						crearVentanaEmergenteExitosa("<html>¡Se creo el nodo raiz del arbol de forma exitosa!"+
-								"<p>* Rotulo de la raiz: "+sRotuloIngresado+"<p>* Valor de la raiz: "+0+"</html>");
+								"<p>* Rotulo de la raiz: "+sRotuloIngresado+"<p>* Grado de la raiz: "+0+"</html>");
 						//Establezco editables a los textField de nodo ingresado
 						tfRotuloDeNodoDefinido.setEditable(true);
 						//Establezco a la segunda opcion del combo box para crear raiz
@@ -394,6 +397,7 @@ public class InterfazGrafica extends JFrame {
 						String k = JOptionPane.showInputDialog("Indica el grado k que deseas utilizar");
 						int intK = Integer.parseInt(k);
 						String textoDeLosRotulos = programa.eliminarNodosGradoK(intK);
+						
 						actualizarHistorial("- Operacion 10: Se solicito eliminar a todos los nodos de grado "+intK+" del árbol. Los nodos eliminados fueron: "+textoDeLosRotulos);
 						
 						//actualizar arbol de la gui

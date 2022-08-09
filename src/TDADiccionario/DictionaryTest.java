@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import Excepciones.InvalidEntryException;
 import Excepciones.InvalidKeyException;
-import TDAMapeo.Entry;
 
 import org.junit.Before;
 

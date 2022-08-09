@@ -2,7 +2,11 @@ package TDADiccionario;
 
 import Excepciones.InvalidEntryException;
 import Excepciones.InvalidKeyException;
-import TDAMapeo.Entry;
+
+/**
+ * Interface Dictionary
+ * @author Cátedra de Estructuras de Datos, Departamento de Cs. e Ing. de la Computación, UNS.
+ */
 
 public interface Dictionary<K,V>
 {

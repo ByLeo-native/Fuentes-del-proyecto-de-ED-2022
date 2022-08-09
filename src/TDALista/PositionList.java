@@ -68,7 +68,7 @@ public interface PositionList<E> extends Iterable<E>
 	public void addLast(E element);
 	
 	/**
-	 * Inserta un elemento luego de la posición pasada por parámatro.
+	 * Inserta un elemento luego de la posición pasada por parámetro.
 	 * @param p Posición en cuya posición siguiente se insertará el elemento pasado por parámetro.
 	 * @param element Elemento a insertar luego de la posición pasada como parámetro.
 	 * @throws InvalidPositionException si la posición es inválida o la lista está vacía.
@@ -101,7 +101,7 @@ public interface PositionList<E> extends Iterable<E>
 	public E set(Position<E> p, E element) throws InvalidPositionException;
 	
 	/**
-	 * Devuelve un un iterador de todos los elementos de la lista.
+	 * Devuelve un iterador de todos los elementos de la lista.
 	 * @return Un iterador de todos los elementos de la lista.
 	 */
 	public Iterator<E> iterator();

@@ -1,8 +1,14 @@
-package TDACola;
+ package TDACola;
 
 import Excepciones.EmptyQueueException;
 import Excepciones.FullQueueException;
 
+/**
+ * Clase de una cola circular.
+ * Una cola es una estructura donde los elementos se insertan en un extremo (el fondo) y la supresiones tienen lugar en el otro extremo (el frente).
+ * @author Leonardo Paillamilla, UNS.
+ * @param <E> tipo generico de los elementos que se encolaran en la cola.
+ */
 public class QueueCircular <E> implements Queue <E> {
 	private int f, r;
 	private E [] datos;
@@ -24,27 +30,14 @@ public class QueueCircular <E> implements Queue <E> {
 		this(1001);
 	}
 	
-	/**
-	 * Consulta si la cola esta vacia.
-	 * @return Cantidad de componentes ocupadas
-	 */
 	public int size() {
 		return (datos.length - f + r)% (datos.length);
 	}
-	
-	/**
-	 * Consulta si la cola esta vacia
-	 * @return Verdadero si la cola esta vacia, falso si la cola no esta vacia
-	 */
+
 	public boolean isEmpty() {
 		return (f == r);
 	}
-	
-	/**
-	 * Inspecciona el elemento que  se encuentra en el frente de la cola.
-	 * @return Elemento que se encuentra en el frente de la cola.
-	 * @throws EmptyQueueException si la cola esta vacia.
-	 */
+
 	public E front() throws EmptyQueueException {
 		if (this.isEmpty()) {
 			throw new EmptyQueueException("Cola vacia");
@@ -52,11 +45,7 @@ public class QueueCircular <E> implements Queue <E> {
 			return datos[f];
 		}
 	}
-	
-	/**
-	 * Inserta un elemento en el fondo de la cola.
-	 * @param element Nuevo elemento a insertar.
-	 */
+
 	public void enqueue(E element) throws FullQueueException {
 		if ( this.size() == (datos.length - 1)) {
 			throw new FullQueueException("Cola llena");
@@ -69,12 +58,7 @@ public class QueueCircular <E> implements Queue <E> {
 			this.agrandarArreglo();
 		}
 	}
-	
-	/**
-	 * Remueve el elemento en el frente de la cola.
-	 * @return Elemento removido.
-	 * @throws FullQueueException si la cola esta llena.
-	 */
+
 	public E dequeue() throws EmptyQueueException {
 		if (this.isEmpty()) {
 			throw new EmptyQueueException("Cola vacia");
@@ -86,11 +70,17 @@ public class QueueCircular <E> implements Queue <E> {
 		}
 	}
 	
+	/**
+	 * Incrementa el tamaño del arreglo.
+	 */
 	@SuppressWarnings("unchecked")
 	private void agrandarArreglo() {
-		E [] nuevoArreglo = (E[]) new Object [this.datos.length + 23 ];
-		for(int i = 0; i < this.datos.length; i++) {
-			nuevoArreglo [i] = this.datos [i];
+		E [] nuevoArreglo = (E[]) new Object [this.datos.length * 2 ];
+		int i=0;
+		int pos = r;
+		while( i < this.size() ) {
+			nuevoArreglo [i++] = this.datos[pos];
+			pos = (pos+1) % datos.length;
 		}
 		this.datos = nuevoArreglo;
 	}

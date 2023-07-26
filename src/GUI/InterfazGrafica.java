@@ -8,29 +8,40 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import Auxiliar.LimitadorCaracteres;
-import Excepciones.GInvalidOperationException;
+import Excepciones.EmptyTreeException;
 import Excepciones.InvalidOperationException;
 import Excepciones.InvalidPositionException;
+import Programa.Pair;
+import Programa.Programa;
+import TDAArbol.Tree;
+import TDALista.Position;
 
+/**
+ * GUI de un programa de manipulacion de un Arbol general de pares de un caracter y un entero.
+ * @author Leonardo Paillamilla, UNS.
+ */
 @SuppressWarnings("serial")
 public class InterfazGrafica extends JFrame {
 	
 	private Programa programa;
-	private JPanel pnOperacion, pnDatos, pnDisplay, pnDisplayRegistro, pnDisplayTree;
+	private JPanel pnOperacion, pnDisplay, pnDisplayRegistro, pnDisplayTree;
 	private JComboBox<String> cbAction;
-	private JLabel lbNuevoRotulo, lbRotuloDeNodoDefinido, lbTamañoDelArbol;
+	private JLabel lbNuevoRotulo, lbRotuloDeNodoDefinido;
 	private JTextField tfNuevoRotulo, tfRotuloDeNodoDefinido;
 	private JButton btnIngresarValores;
 	private JTextArea taDisplay, taDisplayRegistro;
 	private boolean seCreoArbol;
-	private int tamañoDelArbol;
 	private int cantidadDeOperacionesEjecutadas;
 	private DateTimeFormatter time;
 	private JTree arbol;
 	private JScrollPane scroolPnArbol;
 	
+	/**
+	 * Constructor de la intefaz grafica.
+	 */
 	public InterfazGrafica() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(10,10, 854, 480);
@@ -42,11 +53,9 @@ public class InterfazGrafica extends JFrame {
 		this.cantidadDeOperacionesEjecutadas = 1;
 		this.time = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		
-		this.tamañoDelArbol = 0;
 		this.programa = new Programa();
 		this.armarComboBox();
 		this.armarPanelIngresarValores();
-		this.armarPanelDatos();
 		this.armarPanelDeTexto();
 		this.armarPanelDeRegistro();
 		this.armarVisualizacionDelArbol();
@@ -97,24 +106,6 @@ public class InterfazGrafica extends JFrame {
 		this.armarOyenteBoton();
 		
 		pnOperacion.add(btnIngresarValores);
-	}
-	
-	/**
-	 * Arma el panel donde se muestra el tamaño del árbol.
-	 */
-	private void armarPanelDatos() {
-		pnDatos = new JPanel();
-		pnDatos.setBounds( 8, 200, 252, 96);
-		pnDatos.setBorder(BorderFactory.createTitledBorder("Panel de datos"));
-		pnDatos.setLayout(null);
-		getContentPane().add(pnDatos);
-		
-		lbTamañoDelArbol = new JLabel("Tamaño del arbol: "+this.tamañoDelArbol);
-		lbTamañoDelArbol.setBounds( 8, 16, 236, 20);
-		lbTamañoDelArbol.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lbTamañoDelArbol.setVisible(true);
-		
-		pnDatos.add(lbTamañoDelArbol);
 	}
 	
 	/**
@@ -218,96 +209,97 @@ public class InterfazGrafica extends JFrame {
 				 * 8- Mostrar recorrido pos-orden
 				 * 9- Eliminar nodos grado k
 				 */
-				//Para todas las opciones requiero los valores de algun nodo definido
-				String sRotuloDeNodoDefinido = null;
-				//Para las opciones que requieren de los datos de un nodo definido, obtengo los valores de los textField
-				if(necesitaLosDatosDeUnNodoDefinido(intComboBox)) {
-					sRotuloDeNodoDefinido = tfRotuloDeNodoDefinido.getText();
-				}
 				
 				if( intComboBox == 0) {
 					//Obtener los strings de los JTextField
 					String sRotuloIngresado = tfNuevoRotulo.getText();
-					
-					try {
-						//Se crea el arbol 
-						programa.crearArbol();
-						seCreoArbol = programa.crearRaiz(sRotuloIngresado);
-						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
-					} catch (InvalidOperationException e1) {
-						crearVentanaEmergenteFallida("Hubo un error al ingresar los datos");
+					if(sRotuloIngresado.length()==0) {
+						crearVentanaEmergenteFallida("Hubo un error al ingresar los datos.");
+					} else {
+						Character cRotuloIngresado = tfNuevoRotulo.getText().charAt(0);
+						
+						try {
+							seCreoArbol = programa.crearRaiz(cRotuloIngresado);
+						} catch (InvalidOperationException e1) {
+							crearVentanaEmergenteFallida("Hubo un error al ingresar los datos");
+						}
+						
+						if(seCreoArbol) {
+							actualizarHistorial("- Operacion 1: Se creo el nodo raiz del arbol con rotulo "+cRotuloIngresado+".");
+							crearVentanaEmergenteExitosa("<html>¡Se creo el nodo raiz del arbol de forma exitosa!"+
+									"<p>* Rotulo de la raiz: "+cRotuloIngresado+"<p>* Grado de la raiz: "+0+"</html>");
+							actualizarArbolDeLaGUI();
+							tfRotuloDeNodoDefinido.setEditable(true);//Establezco editables a los textField de nodo ingresado
+							cbAction.setSelectedIndex(1); //Establezco a la segunda opcion del combo box para crear raiz
+							btnIngresarValores.setText("Ingresar valores");//Altero el texto del boton
+							limpiarInputs();//Limpio los JTextField
+						}
 					}
 					
-					if(seCreoArbol) {
-						//armarVisualizacionDelArbol(new DefaultMutableTreeNode("("+sRotuloIngresado+", 0)"));
-						actualizarHistorial("- Operacion 1: Se creo el nodo raiz del arbol con rotulo "+sRotuloIngresado+".");
-						//actualizar arbol de la gui
-						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
-						//Lanzo mensaje de exito
-						crearVentanaEmergenteExitosa("<html>¡Se creo el nodo raiz del arbol de forma exitosa!"+
-								"<p>* Rotulo de la raiz: "+sRotuloIngresado+"<p>* Grado de la raiz: "+0+"</html>");
-						//Establezco editables a los textField de nodo ingresado
-						tfRotuloDeNodoDefinido.setEditable(true);
-						//Establezco a la segunda opcion del combo box para crear raiz
-						cbAction.setSelectedIndex(1);
-						//Altero el texto del boton
-						btnIngresarValores.setText("Ingresar valores");
-						//Limpio los JTextField
-						limpiarInputs();
-					}
 				} else if( intComboBox == 1 ) { //Añadir nodo
 					try {
-						//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
-						String sRotuloIngresado = tfNuevoRotulo.getText();
-						int nuevoGradoDelNodoAncestro = programa.agregarNodo(sRotuloIngresado, sRotuloDeNodoDefinido, arbol, scroolPnArbol, pnDisplayTree);
-						actualizarHistorial("- Operacion 2: Se añadio el nodo ("+sRotuloIngresado+", "+0+") que tiene como padre al nodo ("+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+").");
 						
-						//actualizar arbol de la gui
-						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
+						if(tfRotuloDeNodoDefinido.getText().length()==0 || tfNuevoRotulo.getText().length()==0) {
+							crearVentanaEmergenteFallida("No se ha ingresado los datos correctamente.");
+						} else {
+							Character cRotuloDeNodoDefinido = tfRotuloDeNodoDefinido.getText().charAt(0);
+							//Para añadir un nuevo nodo debo obtener datos del panel de nuevo nodo
+							Character cRotuloIngresado = tfNuevoRotulo.getText().charAt(0);
+							int nuevoGradoDelNodoAncestro = programa.agregarNodo(cRotuloIngresado, cRotuloDeNodoDefinido);
+							actualizarHistorial("- Operacion 2: Se añadio el nodo ("+cRotuloIngresado+", "+0+") que tiene como padre al nodo ("+cRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+").");
+							
+							//Ventana emergente de que se logro añadir un nodo
+							crearVentanaEmergenteExitosa("<html>"
+									+ "Se añadio un nuevo hijo al nodo ( "+cRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+")"
+											+ "<p>* Rotulo del nuevo nodo: "+cRotuloIngresado+"<p>* Grado del nuevo nodo: "+0+"</html>");
+							actualizarArbolDeLaGUI();
+						}
 						
-						//Ventana emergente de que se logro añadir un nodo
-						crearVentanaEmergenteExitosa("<html>"
-								+ "Se añadio un nuevo hijo al nodo ( "+sRotuloDeNodoDefinido+", "+nuevoGradoDelNodoAncestro+")"
-										+ "<p>* Rotulo del nuevo nodo: "+sRotuloIngresado+"<p>* Grado del nuevo nodo: "+0+"</html>");
-					} catch (InvalidPositionException | GInvalidOperationException e1) {crearVentanaEmergenteFallida(e1.getMessage());} 
+					} catch (InvalidPositionException e1) {crearVentanaEmergenteFallida(e1.getMessage());} 
 					
 				} else if( intComboBox == 2 ) { //Eliminar nodo
 					try {
-						programa.eliminarNodo(sRotuloDeNodoDefinido);
-						actualizarHistorial("- Operacion 3: Se elimino el nodo raiz del arbol con rotulo "+sRotuloDeNodoDefinido+".");
-						
-						//actualizar arbol de la gui
-						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
-						
-						crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+sRotuloDeNodoDefinido+" del arbol!</html>");
-						
+						if(tfRotuloDeNodoDefinido.getText().length()==0) {
+							crearVentanaEmergenteFallida("No se ha ingresado los datos correctamente.");
+						} else {
+							Character cRotuloDeNodoDefinido = tfRotuloDeNodoDefinido.getText().charAt(0);
+							programa.eliminarNodo(cRotuloDeNodoDefinido);
+							actualizarHistorial("- Operacion 3: Se elimino el nodo raiz del arbol con rotulo "+cRotuloDeNodoDefinido+".");
+							
+							crearVentanaEmergenteExitosa("<html>¡Se elimino el nodo "+cRotuloDeNodoDefinido+" del arbol!</html>");
+							
+							actualizarArbolDeLaGUI();
+						}
 					} catch (InvalidPositionException error) {crearVentanaEmergenteFallida(error.getMessage());}
 				} else if( intComboBox == 3) { //Obtener grados
-					taDisplay.setText(programa.obtenerGrados());
-					actualizarHistorial("- Operacion 4: Se solicito obtener los grados de los nodos del arbol");
+						taDisplay.setText(programa.obtenerGrados());
+						actualizarHistorial("- Operacion 4: Se solicito obtener los grados de los nodos del arbol.");
 				} else if( intComboBox == 4) { //Obtener grado del arbol
-					actualizarHistorial("- Operacion 5: Se solicito obtener el grado del arbol");
-					crearVentanaEmergenteExitosa("Grado actual del árbol: "+programa.obtenerGradoDelArbol());
+					int gradoDelArbol = programa.obtenerGradoDelArbol();
+					crearVentanaEmergenteExitosa("Grado actual del árbol: "+gradoDelArbol);
+					actualizarHistorial("- Operacion 5: Se solicito obtener el grado del arbol. Se obtuvo como resultado: "+gradoDelArbol);
 				} else if( intComboBox == 5) { //Obtener camino
 					try {
-						taDisplay.setText("Camino desde la raiz al nodo con rotulo "+sRotuloDeNodoDefinido+": \n" +programa.obtenerCamino(sRotuloDeNodoDefinido));
-						actualizarHistorial("- Operacion 6: Se solicito mostrar el camino desde la raiz al nodo con rotulo "+sRotuloDeNodoDefinido);
+						if(tfRotuloDeNodoDefinido.getText().length()==0) {
+							crearVentanaEmergenteFallida("No se ha ingresado los datos correctamente");
+						} else {
+							Character cRotuloDeNodoDefinido = tfRotuloDeNodoDefinido.getText().charAt(0);
+							taDisplay.setText("Camino desde la raiz al nodo con rotulo "+cRotuloDeNodoDefinido+": \n" +programa.obtenerCamino(cRotuloDeNodoDefinido));
+							actualizarHistorial("- Operacion 6: Se solicito mostrar el camino desde la raiz al nodo con rotulo "+cRotuloDeNodoDefinido+".");
+						}
+						
 					} catch (InvalidPositionException e1) {crearVentanaEmergenteFallida(e1.getMessage());}
 				} else if( intComboBox == 6) {
 					taDisplay.setText("Recorrido Preorden: "+programa.mostrarRecorridoPreorden());
-					actualizarHistorial("- Operacion 7: Se solicito mostrar los rotulos del árbol con un recorrido preOrden");
+					actualizarHistorial("- Operacion 7: Se solicito mostrar los rotulos del árbol con un recorrido preOrden.");
 				} else if( intComboBox == 7) {
 					taDisplay.setText("Recorrido por niveles: \n"+programa.mostrarPorNiveles());
-					actualizarHistorial("- Operacion 8: Se solicito mostrar los rotulos del árbol por niveles");
+					actualizarHistorial("- Operacion 8: Se solicito mostrar los rotulos del árbol por niveles.");
 				} else if( intComboBox == 8) {
 					taDisplay.setText("Recorrido Posorden: "+programa.mostrarRecorridoPosorden());
-					actualizarHistorial("- Operacion 9: Se solicito mostrar los rotulos del árbol con un recorrido posOrden");
-				} else if( intComboBox == 9) {
-					
-				}
+					actualizarHistorial("- Operacion 9: Se solicito mostrar los rotulos del árbol con un recorrido posOrden.");
+				} else if( intComboBox == 9) {}
 				limpiarInputs();
-				//Luego de cualquier accion -> actualizo el panel de datos
-				actualizarPanelDatos();
 			}
 		});
 	}
@@ -333,7 +325,7 @@ public class InterfazGrafica extends JFrame {
 				//Obtengo el indice de la opcion selecciona de la combo box
 				int indexComboBox = cbAction.getSelectedIndex();
 				if(!seCreoArbol && indexComboBox != 0) {
-					crearVentanaEmergenteFallida("Aun no se creo el árbol");
+					crearVentanaEmergenteFallida("¡Aun no se creo el árbol! \nPor favor, ingrese un rotulo haga clic en el boton para crear el árbol.");
 					//Establezco que debe elegir la primera opcion del combobox
 					cbAction.setSelectedIndex(0);
 				} 
@@ -389,26 +381,108 @@ public class InterfazGrafica extends JFrame {
 						tfNuevoRotulo.setEditable(false);
 						tfRotuloDeNodoDefinido.setEditable(false);
 						btnIngresarValores.setText("Mostrar recorrido pos-orden");
+						
 					} else if(indexComboBox == 9) {
 						limpiarInputs();
 						tfNuevoRotulo.setEditable(false);
 						tfRotuloDeNodoDefinido.setEditable(false);
 						
-						String k = JOptionPane.showInputDialog("Indica el grado k que deseas utilizar");
-						int intK = Integer.parseInt(k);
-						String textoDeLosRotulos = programa.eliminarNodosGradoK(intK);
+						boolean seSalio = false;
+						boolean seElimino = false;
+						while(!seSalio) {
+							String k = JOptionPane.showInputDialog( null, "Indica el grado k que deseas utilizar:");
+							
+							if( k == null ) {
+								seSalio = true;
+							} else if( k != "" && k.matches("[+-]?\\d*(\\.\\d+)?")) {
+								int intK = Integer.parseInt(k);
+								String textoDeLosRotulos = programa.eliminarNodosGradoK(intK);
+								
+								if( textoDeLosRotulos.length() != 0) {
+									crearVentanaEmergenteExitosa("¡Se eliminaron todos los nodos de grado "+intK+" del árbol! \n Los nodos eliminados fueron: "+textoDeLosRotulos+".");
+									actualizarHistorial("- Operacion 10: Se solicito eliminar a todos los nodos de grado "+intK+" del árbol. Los nodos eliminados fueron: "+textoDeLosRotulos+".");
+									seSalio = true;
+									seElimino = true;
+								} else {
+									crearVentanaEmergenteFallida("No se encontraron nodos que cuenten con "+k+" descendientes directos.");
+									actualizarHistorial("- Operacion 10: Se solicito eliminar a todos los nodos de grado "+intK+" del árbol, sin embargo, el arbol no cuenta con nodos con el grado indicado.");
+								}
+							} else {
+								crearVentanaEmergenteFallida("Se ingreso un valor invalido.\nAsegurese de ingresar un valor correctamente.");
+							}
+						}
 						
-						actualizarHistorial("- Operacion 10: Se solicito eliminar a todos los nodos de grado "+intK+" del árbol. Los nodos eliminados fueron: "+textoDeLosRotulos);
+						if(!seElimino) {
+							crearVentanaEmergenteFallida("¡No se ha completado la función!\nNo se eliminaron nodos.");
+						} else {
+							actualizarArbolDeLaGUI();
+						}
 						
-						//actualizar arbol de la gui
-						programa.actualizarArbolDeLaGUI(arbol, scroolPnArbol, pnDisplayTree);
-						
-						crearVentanaEmergenteExitosa("¡Se eliminaron todos los nodos de grado "+intK+" del árbol! \n Los nodos eliminados fueron: "+textoDeLosRotulos);
+						//Pongo ya para utilizar la funcion de agregar nodo.
+						cbAction.setSelectedIndex(1);
+						limpiarInputs();
+						tfNuevoRotulo.setEditable(true);
+						tfRotuloDeNodoDefinido.setEditable(true);
+						btnIngresarValores.setText("Ingresar valores");
 					}
 				}
-				
 			}
 		});
+	}
+	
+	/**
+	 * Actualiza la representacion visual del arbol.
+	 * @param tree JTree referencia del árbol de la GUI.
+	 * @param panel JScrollPane referencia del panel con scroll de la GUI.
+	 * @param contenedor JPanel contenedor donde se añadira el panel.
+	 */
+	private void actualizarArbolDeLaGUI() {
+		try {
+			
+			Tree<Pair<Character,Integer>> referenciaDelArbol = this.programa.referenciaDelArbol();
+			if(referenciaDelArbol.isEmpty()) {
+				this.condicionesIniciales();
+			} else {
+				Position<Pair<Character,Integer>> posDeLaRaiz = referenciaDelArbol.root();
+				Pair<Character,Integer> raiz = posDeLaRaiz.element();
+				
+				DefaultMutableTreeNode nodoRaiz = new DefaultMutableTreeNode("("+raiz.getKey()+", "+raiz.getValue()+")");
+		
+				for(Position<Pair<Character,Integer>> posHijo : referenciaDelArbol.children(posDeLaRaiz)) {
+					this.actualizarArbolDeLaGUIAux(posHijo, nodoRaiz, referenciaDelArbol);
+				}
+				
+				this.arbol = new JTree(nodoRaiz);
+				
+				for (int i = 0; i < this.arbol .getRowCount(); i++) {
+					this.arbol.expandRow(i);
+				}
+				
+				scroolPnArbol = new JScrollPane(this.arbol, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+				scroolPnArbol.setBounds(8, 16, 206, 262);
+				pnDisplayTree.add(scroolPnArbol);
+			}
+		} catch (EmptyTreeException | InvalidPositionException e) {e.fillInStackTrace();}
+	}
+	
+	/**
+	 * Metodo auxiliar que añade un nodo hijo a su correspondiente nodo padre de un árbol JTree.
+	 * @param tree JTree referencia del árbol de la GUI.
+	 * @param hijo Posición del nodo en el árbol.
+	 * @param nodoAncestro DefaultMutableTreeNode referencia del nodo padre.
+	 */
+	private void actualizarArbolDeLaGUIAux(Position<Pair<Character,Integer>> hijo, DefaultMutableTreeNode nodoAncestro, Tree<Pair<Character, Integer>> referenciaDelArbol) {
+		Pair<Character,Integer> entrada = hijo.element();
+		DefaultMutableTreeNode nodo = new DefaultMutableTreeNode("("+entrada.getKey()+", "+entrada.getValue()+")");
+		nodoAncestro.add(nodo);
+		try {
+			if(referenciaDelArbol.isInternal(hijo)) {
+				
+				for(Position<Pair<Character,Integer>> posHijo : referenciaDelArbol.children(hijo)) {
+					this.actualizarArbolDeLaGUIAux(posHijo, nodo, referenciaDelArbol);
+				}
+			}
+		} catch (InvalidPositionException e) {e.fillInStackTrace();}
 	}
 	
 	/**
@@ -421,15 +495,6 @@ public class InterfazGrafica extends JFrame {
 		tfNuevoRotulo.setEditable(true);
 		tfRotuloDeNodoDefinido.setEditable(false);
 		this.btnIngresarValores.setText("Crear árbol");
-	}
-	
-	/**
-	 * Indica si el metodo seleccionado en la combobox necesita el rotulo de un nodo existente en el árbol.
-	 * @param index indice de la opción seleccionada de la combobox.
-	 * @return verdadero si necesita el rotulo de un nodo existente, falso en caso contrario.
-	 */
-	private boolean necesitaLosDatosDeUnNodoDefinido(int index) {
-		return index == 1 || index == 2 || index == 5;
 	}
 	
 	/**
@@ -457,16 +522,9 @@ public class InterfazGrafica extends JFrame {
 	}
 	
 	/**
-	 * Actualiza los valores del panel de
+	 * Actualiza el registro de operaciones ejecutadas.
+	 * @param msg String resultado de la ejecución de una función.
 	 */
-	private void actualizarPanelDatos() {
-		this.tamañoDelArbol = this.programa.obtenerTamañoDelArbol();
-		lbTamañoDelArbol.setText("Tamaño del arbol: "+this.tamañoDelArbol);
-		if(this.tamañoDelArbol == 0) {
-			condicionesIniciales();
-		}
-	}
-	
 	private void actualizarHistorial(String msg) {
 		taDisplayRegistro.setText(taDisplayRegistro.getText()+this.cantidadDeOperacionesEjecutadas+" - "+time.format(LocalDateTime.now())+" " +msg+"\n");
 		this.cantidadDeOperacionesEjecutadas++;
